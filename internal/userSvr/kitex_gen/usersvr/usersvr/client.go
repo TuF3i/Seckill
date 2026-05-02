@@ -11,10 +11,10 @@ import (
 
 // Client is designed to provide IDL-compatible methods with call-option parameter for kitex framework.
 type Client interface {
-	RegisterUser(ctx context.Context, uid string, password string, callOptions ...callopt.Option) (err error)
-	Login(ctx context.Context, uid string, password string, callOptions ...callopt.Option) (r *usersvr.JWTToken, err error)
-	Logout(ctx context.Context, accessToken string, callOptions ...callopt.Option) (err error)
-	RefreshAccessToken(ctx context.Context, refreshToken string, callOptions ...callopt.Option) (r string, err error)
+	RegisterUser(ctx context.Context, email string, password string, callOptions ...callopt.Option) (err error)
+	Login(ctx context.Context, email string, password string, callOptions ...callopt.Option) (r *usersvr.JWTToken, err error)
+	Logout(ctx context.Context, uid string, callOptions ...callopt.Option) (err error)
+	RefreshAccessToken(ctx context.Context, claims *usersvr.JWTClaims, callOptions ...callopt.Option) (r string, err error)
 	VerifyAccessToken(ctx context.Context, accessToken string, callOptions ...callopt.Option) (r *usersvr.JWTClaims, err error)
 	VerifyRefreshToken(ctx context.Context, refreshToken string, callOptions ...callopt.Option) (r *usersvr.JWTClaims, err error)
 }
@@ -35,7 +35,7 @@ func NewClient(destService string, opts ...client.Option) (Client, error) {
 	}, nil
 }
 
-// MustNewClient creates a client for the service defined in IDL. It panics if any lerror occurs.
+// MustNewClient creates a client for the service defined in IDL. It panics if any error occurs.
 func MustNewClient(destService string, opts ...client.Option) Client {
 	kc, err := NewClient(destService, opts...)
 	if err != nil {
@@ -48,24 +48,24 @@ type kUserSvrClient struct {
 	*kClient
 }
 
-func (p *kUserSvrClient) RegisterUser(ctx context.Context, uid string, password string, callOptions ...callopt.Option) (err error) {
+func (p *kUserSvrClient) RegisterUser(ctx context.Context, email string, password string, callOptions ...callopt.Option) (err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
-	return p.kClient.RegisterUser(ctx, uid, password)
+	return p.kClient.RegisterUser(ctx, email, password)
 }
 
-func (p *kUserSvrClient) Login(ctx context.Context, uid string, password string, callOptions ...callopt.Option) (r *usersvr.JWTToken, err error) {
+func (p *kUserSvrClient) Login(ctx context.Context, email string, password string, callOptions ...callopt.Option) (r *usersvr.JWTToken, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
-	return p.kClient.Login(ctx, uid, password)
+	return p.kClient.Login(ctx, email, password)
 }
 
-func (p *kUserSvrClient) Logout(ctx context.Context, accessToken string, callOptions ...callopt.Option) (err error) {
+func (p *kUserSvrClient) Logout(ctx context.Context, uid string, callOptions ...callopt.Option) (err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
-	return p.kClient.Logout(ctx, accessToken)
+	return p.kClient.Logout(ctx, uid)
 }
 
-func (p *kUserSvrClient) RefreshAccessToken(ctx context.Context, refreshToken string, callOptions ...callopt.Option) (r string, err error) {
+func (p *kUserSvrClient) RefreshAccessToken(ctx context.Context, claims *usersvr.JWTClaims, callOptions ...callopt.Option) (r string, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
-	return p.kClient.RefreshAccessToken(ctx, refreshToken)
+	return p.kClient.RefreshAccessToken(ctx, claims)
 }
 
 func (p *kUserSvrClient) VerifyAccessToken(ctx context.Context, accessToken string, callOptions ...callopt.Option) (r *usersvr.JWTClaims, err error) {

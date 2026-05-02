@@ -89,11 +89,11 @@ func (p *JWTToken) FastRead(buf []byte) (int, error) {
 	}
 	return offset, nil
 ReadFieldBeginError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin lerror: ", p, fieldId), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' lerror: ", p, fieldId, fieldIDToName_JWTToken[fieldId]), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_JWTToken[fieldId]), err)
 SkipFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d lerror: ", p, fieldId, fieldTypeId), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 RequiredFieldNotSetError:
 	return offset, thrift.NewProtocolException(thrift.INVALID_DATA, fmt.Sprintf("required field %s is not set", fieldIDToName_JWTToken[fieldId]))
 }
@@ -268,11 +268,11 @@ func (p *JWTClaims) FastRead(buf []byte) (int, error) {
 	}
 	return offset, nil
 ReadFieldBeginError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin lerror: ", p, fieldId), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' lerror: ", p, fieldId, fieldIDToName_JWTClaims[fieldId]), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_JWTClaims[fieldId]), err)
 SkipFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d lerror: ", p, fieldId, fieldTypeId), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 RequiredFieldNotSetError:
 	return offset, thrift.NewProtocolException(thrift.INVALID_DATA, fmt.Sprintf("required field %s is not set", fieldIDToName_JWTClaims[fieldId]))
 }
@@ -445,11 +445,11 @@ func (p *UserSvrRegisterUserArgs) FastRead(buf []byte) (int, error) {
 
 	return offset, nil
 ReadFieldBeginError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin lerror: ", p, fieldId), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' lerror: ", p, fieldId, fieldIDToName_UserSvrRegisterUserArgs[fieldId]), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_UserSvrRegisterUserArgs[fieldId]), err)
 SkipFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d lerror: ", p, fieldId, fieldTypeId), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 }
 
 func (p *UserSvrRegisterUserArgs) FastReadField1(buf []byte) (int, error) {
@@ -462,7 +462,7 @@ func (p *UserSvrRegisterUserArgs) FastReadField1(buf []byte) (int, error) {
 		offset += l
 		_field = v
 	}
-	p.Uid = _field
+	p.Email = _field
 	return offset, nil
 }
 
@@ -507,7 +507,7 @@ func (p *UserSvrRegisterUserArgs) BLength() int {
 func (p *UserSvrRegisterUserArgs) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 1)
-	offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, p.Uid)
+	offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, p.Email)
 	return offset
 }
 
@@ -521,7 +521,7 @@ func (p *UserSvrRegisterUserArgs) fastWriteField2(buf []byte, w thrift.NocopyWri
 func (p *UserSvrRegisterUserArgs) field1Length() int {
 	l := 0
 	l += thrift.Binary.FieldBeginLength()
-	l += thrift.Binary.StringLengthNocopy(p.Uid)
+	l += thrift.Binary.StringLengthNocopy(p.Email)
 	return l
 }
 
@@ -557,9 +557,9 @@ func (p *UserSvrRegisterUserResult) FastRead(buf []byte) (int, error) {
 
 	return offset, nil
 ReadFieldBeginError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin lerror: ", p, fieldId), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 SkipFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d lerror: ", p, fieldId, fieldTypeId), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 }
 
 func (p *UserSvrRegisterUserResult) FastWrite(buf []byte) int {
@@ -638,11 +638,11 @@ func (p *UserSvrLoginArgs) FastRead(buf []byte) (int, error) {
 
 	return offset, nil
 ReadFieldBeginError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin lerror: ", p, fieldId), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' lerror: ", p, fieldId, fieldIDToName_UserSvrLoginArgs[fieldId]), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_UserSvrLoginArgs[fieldId]), err)
 SkipFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d lerror: ", p, fieldId, fieldTypeId), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 }
 
 func (p *UserSvrLoginArgs) FastReadField1(buf []byte) (int, error) {
@@ -655,7 +655,7 @@ func (p *UserSvrLoginArgs) FastReadField1(buf []byte) (int, error) {
 		offset += l
 		_field = v
 	}
-	p.Uid = _field
+	p.Email = _field
 	return offset, nil
 }
 
@@ -700,7 +700,7 @@ func (p *UserSvrLoginArgs) BLength() int {
 func (p *UserSvrLoginArgs) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 1)
-	offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, p.Uid)
+	offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, p.Email)
 	return offset
 }
 
@@ -714,7 +714,7 @@ func (p *UserSvrLoginArgs) fastWriteField2(buf []byte, w thrift.NocopyWriter) in
 func (p *UserSvrLoginArgs) field1Length() int {
 	l := 0
 	l += thrift.Binary.FieldBeginLength()
-	l += thrift.Binary.StringLengthNocopy(p.Uid)
+	l += thrift.Binary.StringLengthNocopy(p.Email)
 	return l
 }
 
@@ -767,11 +767,11 @@ func (p *UserSvrLoginResult) FastRead(buf []byte) (int, error) {
 
 	return offset, nil
 ReadFieldBeginError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin lerror: ", p, fieldId), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' lerror: ", p, fieldId, fieldIDToName_UserSvrLoginResult[fieldId]), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_UserSvrLoginResult[fieldId]), err)
 SkipFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d lerror: ", p, fieldId, fieldTypeId), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 }
 
 func (p *UserSvrLoginResult) FastReadField0(buf []byte) (int, error) {
@@ -868,11 +868,11 @@ func (p *UserSvrLogoutArgs) FastRead(buf []byte) (int, error) {
 
 	return offset, nil
 ReadFieldBeginError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin lerror: ", p, fieldId), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' lerror: ", p, fieldId, fieldIDToName_UserSvrLogoutArgs[fieldId]), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_UserSvrLogoutArgs[fieldId]), err)
 SkipFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d lerror: ", p, fieldId, fieldTypeId), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 }
 
 func (p *UserSvrLogoutArgs) FastReadField1(buf []byte) (int, error) {
@@ -885,7 +885,7 @@ func (p *UserSvrLogoutArgs) FastReadField1(buf []byte) (int, error) {
 		offset += l
 		_field = v
 	}
-	p.AccessToken = _field
+	p.Uid = _field
 	return offset, nil
 }
 
@@ -914,14 +914,14 @@ func (p *UserSvrLogoutArgs) BLength() int {
 func (p *UserSvrLogoutArgs) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
 	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 1)
-	offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, p.AccessToken)
+	offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, p.Uid)
 	return offset
 }
 
 func (p *UserSvrLogoutArgs) field1Length() int {
 	l := 0
 	l += thrift.Binary.FieldBeginLength()
-	l += thrift.Binary.StringLengthNocopy(p.AccessToken)
+	l += thrift.Binary.StringLengthNocopy(p.Uid)
 	return l
 }
 
@@ -950,9 +950,9 @@ func (p *UserSvrLogoutResult) FastRead(buf []byte) (int, error) {
 
 	return offset, nil
 ReadFieldBeginError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin lerror: ", p, fieldId), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 SkipFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d lerror: ", p, fieldId, fieldTypeId), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 }
 
 func (p *UserSvrLogoutResult) FastWrite(buf []byte) int {
@@ -993,7 +993,7 @@ func (p *UserSvrRefreshAccessTokenArgs) FastRead(buf []byte) (int, error) {
 		}
 		switch fieldId {
 		case 1:
-			if fieldTypeId == thrift.STRING {
+			if fieldTypeId == thrift.STRUCT {
 				l, err = p.FastReadField1(buf[offset:])
 				offset += l
 				if err != nil {
@@ -1017,24 +1017,22 @@ func (p *UserSvrRefreshAccessTokenArgs) FastRead(buf []byte) (int, error) {
 
 	return offset, nil
 ReadFieldBeginError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin lerror: ", p, fieldId), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' lerror: ", p, fieldId, fieldIDToName_UserSvrRefreshAccessTokenArgs[fieldId]), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_UserSvrRefreshAccessTokenArgs[fieldId]), err)
 SkipFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d lerror: ", p, fieldId, fieldTypeId), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 }
 
 func (p *UserSvrRefreshAccessTokenArgs) FastReadField1(buf []byte) (int, error) {
 	offset := 0
-
-	var _field string
-	if v, l, err := thrift.Binary.ReadString(buf[offset:]); err != nil {
+	_field := NewJWTClaims()
+	if l, err := _field.FastRead(buf[offset:]); err != nil {
 		return offset, err
 	} else {
 		offset += l
-		_field = v
 	}
-	p.RefreshToken = _field
+	p.Claims = _field
 	return offset, nil
 }
 
@@ -1062,15 +1060,15 @@ func (p *UserSvrRefreshAccessTokenArgs) BLength() int {
 
 func (p *UserSvrRefreshAccessTokenArgs) fastWriteField1(buf []byte, w thrift.NocopyWriter) int {
 	offset := 0
-	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRING, 1)
-	offset += thrift.Binary.WriteStringNocopy(buf[offset:], w, p.RefreshToken)
+	offset += thrift.Binary.WriteFieldBegin(buf[offset:], thrift.STRUCT, 1)
+	offset += p.Claims.FastWriteNocopy(buf[offset:], w)
 	return offset
 }
 
 func (p *UserSvrRefreshAccessTokenArgs) field1Length() int {
 	l := 0
 	l += thrift.Binary.FieldBeginLength()
-	l += thrift.Binary.StringLengthNocopy(p.RefreshToken)
+	l += p.Claims.BLength()
 	return l
 }
 
@@ -1116,11 +1114,11 @@ func (p *UserSvrRefreshAccessTokenResult) FastRead(buf []byte) (int, error) {
 
 	return offset, nil
 ReadFieldBeginError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin lerror: ", p, fieldId), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' lerror: ", p, fieldId, fieldIDToName_UserSvrRefreshAccessTokenResult[fieldId]), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_UserSvrRefreshAccessTokenResult[fieldId]), err)
 SkipFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d lerror: ", p, fieldId, fieldTypeId), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 }
 
 func (p *UserSvrRefreshAccessTokenResult) FastReadField0(buf []byte) (int, error) {
@@ -1219,11 +1217,11 @@ func (p *UserSvrVerifyAccessTokenArgs) FastRead(buf []byte) (int, error) {
 
 	return offset, nil
 ReadFieldBeginError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin lerror: ", p, fieldId), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' lerror: ", p, fieldId, fieldIDToName_UserSvrVerifyAccessTokenArgs[fieldId]), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_UserSvrVerifyAccessTokenArgs[fieldId]), err)
 SkipFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d lerror: ", p, fieldId, fieldTypeId), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 }
 
 func (p *UserSvrVerifyAccessTokenArgs) FastReadField1(buf []byte) (int, error) {
@@ -1318,11 +1316,11 @@ func (p *UserSvrVerifyAccessTokenResult) FastRead(buf []byte) (int, error) {
 
 	return offset, nil
 ReadFieldBeginError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin lerror: ", p, fieldId), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' lerror: ", p, fieldId, fieldIDToName_UserSvrVerifyAccessTokenResult[fieldId]), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_UserSvrVerifyAccessTokenResult[fieldId]), err)
 SkipFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d lerror: ", p, fieldId, fieldTypeId), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 }
 
 func (p *UserSvrVerifyAccessTokenResult) FastReadField0(buf []byte) (int, error) {
@@ -1419,11 +1417,11 @@ func (p *UserSvrVerifyRefreshTokenArgs) FastRead(buf []byte) (int, error) {
 
 	return offset, nil
 ReadFieldBeginError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin lerror: ", p, fieldId), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' lerror: ", p, fieldId, fieldIDToName_UserSvrVerifyRefreshTokenArgs[fieldId]), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_UserSvrVerifyRefreshTokenArgs[fieldId]), err)
 SkipFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d lerror: ", p, fieldId, fieldTypeId), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 }
 
 func (p *UserSvrVerifyRefreshTokenArgs) FastReadField1(buf []byte) (int, error) {
@@ -1518,11 +1516,11 @@ func (p *UserSvrVerifyRefreshTokenResult) FastRead(buf []byte) (int, error) {
 
 	return offset, nil
 ReadFieldBeginError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin lerror: ", p, fieldId), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
 ReadFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' lerror: ", p, fieldId, fieldIDToName_UserSvrVerifyRefreshTokenResult[fieldId]), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_UserSvrVerifyRefreshTokenResult[fieldId]), err)
 SkipFieldError:
-	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d lerror: ", p, fieldId, fieldTypeId), err)
+	return offset, thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
 }
 
 func (p *UserSvrVerifyRefreshTokenResult) FastReadField0(buf []byte) (int, error) {
@@ -1578,7 +1576,7 @@ func (p *UserSvrVerifyRefreshTokenResult) field0Length() int {
 }
 
 func (p *UserSvrRegisterUserArgs) GetFirstArgument() interface{} {
-	return p.Uid
+	return p.Email
 }
 
 func (p *UserSvrRegisterUserResult) GetResult() interface{} {
@@ -1586,7 +1584,7 @@ func (p *UserSvrRegisterUserResult) GetResult() interface{} {
 }
 
 func (p *UserSvrLoginArgs) GetFirstArgument() interface{} {
-	return p.Uid
+	return p.Email
 }
 
 func (p *UserSvrLoginResult) GetResult() interface{} {
@@ -1594,7 +1592,7 @@ func (p *UserSvrLoginResult) GetResult() interface{} {
 }
 
 func (p *UserSvrLogoutArgs) GetFirstArgument() interface{} {
-	return p.AccessToken
+	return p.Uid
 }
 
 func (p *UserSvrLogoutResult) GetResult() interface{} {
@@ -1602,7 +1600,7 @@ func (p *UserSvrLogoutResult) GetResult() interface{} {
 }
 
 func (p *UserSvrRefreshAccessTokenArgs) GetFirstArgument() interface{} {
-	return p.RefreshToken
+	return p.Claims
 }
 
 func (p *UserSvrRefreshAccessTokenResult) GetResult() interface{} {

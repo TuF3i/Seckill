@@ -1,13 +1,12 @@
 package user
 
 type RegisterUserReq struct {
-	Uid      string `json:"uid"`
 	Password string `json:"password"`
 	Email    string `json:"email"`
 }
 
 type LoginReq struct {
-	Uid      string `json:"uid"`
+	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 

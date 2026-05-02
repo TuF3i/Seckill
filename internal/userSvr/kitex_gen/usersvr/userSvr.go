@@ -179,13 +179,13 @@ var fieldIDToName_JWTClaims = map[int16]string{
 }
 
 type UserSvr interface {
-	RegisterUser(ctx context.Context, uid string, password string) (err error)
+	RegisterUser(ctx context.Context, email string, password string) (err error)
 
-	Login(ctx context.Context, uid string, password string) (r *JWTToken, err error)
+	Login(ctx context.Context, email string, password string) (r *JWTToken, err error)
 
-	Logout(ctx context.Context, accessToken string) (err error)
+	Logout(ctx context.Context, uid string) (err error)
 
-	RefreshAccessToken(ctx context.Context, refreshToken string) (r string, err error)
+	RefreshAccessToken(ctx context.Context, claims *JWTClaims) (r string, err error)
 
 	VerifyAccessToken(ctx context.Context, accessToken string) (r *JWTClaims, err error)
 
@@ -193,7 +193,7 @@ type UserSvr interface {
 }
 
 type UserSvrRegisterUserArgs struct {
-	Uid      string `thrift:"uid,1" frugal:"1,default,string" json:"uid"`
+	Email    string `thrift:"email,1" frugal:"1,default,string" json:"email"`
 	Password string `thrift:"password,2" frugal:"2,default,string" json:"password"`
 }
 
@@ -204,15 +204,15 @@ func NewUserSvrRegisterUserArgs() *UserSvrRegisterUserArgs {
 func (p *UserSvrRegisterUserArgs) InitDefault() {
 }
 
-func (p *UserSvrRegisterUserArgs) GetUid() (v string) {
-	return p.Uid
+func (p *UserSvrRegisterUserArgs) GetEmail() (v string) {
+	return p.Email
 }
 
 func (p *UserSvrRegisterUserArgs) GetPassword() (v string) {
 	return p.Password
 }
-func (p *UserSvrRegisterUserArgs) SetUid(val string) {
-	p.Uid = val
+func (p *UserSvrRegisterUserArgs) SetEmail(val string) {
+	p.Email = val
 }
 func (p *UserSvrRegisterUserArgs) SetPassword(val string) {
 	p.Password = val
@@ -226,7 +226,7 @@ func (p *UserSvrRegisterUserArgs) String() string {
 }
 
 var fieldIDToName_UserSvrRegisterUserArgs = map[int16]string{
-	1: "uid",
+	1: "email",
 	2: "password",
 }
 
@@ -250,7 +250,7 @@ func (p *UserSvrRegisterUserResult) String() string {
 var fieldIDToName_UserSvrRegisterUserResult = map[int16]string{}
 
 type UserSvrLoginArgs struct {
-	Uid      string `thrift:"uid,1" frugal:"1,default,string" json:"uid"`
+	Email    string `thrift:"email,1" frugal:"1,default,string" json:"email"`
 	Password string `thrift:"password,2" frugal:"2,default,string" json:"password"`
 }
 
@@ -261,15 +261,15 @@ func NewUserSvrLoginArgs() *UserSvrLoginArgs {
 func (p *UserSvrLoginArgs) InitDefault() {
 }
 
-func (p *UserSvrLoginArgs) GetUid() (v string) {
-	return p.Uid
+func (p *UserSvrLoginArgs) GetEmail() (v string) {
+	return p.Email
 }
 
 func (p *UserSvrLoginArgs) GetPassword() (v string) {
 	return p.Password
 }
-func (p *UserSvrLoginArgs) SetUid(val string) {
-	p.Uid = val
+func (p *UserSvrLoginArgs) SetEmail(val string) {
+	p.Email = val
 }
 func (p *UserSvrLoginArgs) SetPassword(val string) {
 	p.Password = val
@@ -283,7 +283,7 @@ func (p *UserSvrLoginArgs) String() string {
 }
 
 var fieldIDToName_UserSvrLoginArgs = map[int16]string{
-	1: "uid",
+	1: "email",
 	2: "password",
 }
 
@@ -326,7 +326,7 @@ var fieldIDToName_UserSvrLoginResult = map[int16]string{
 }
 
 type UserSvrLogoutArgs struct {
-	AccessToken string `thrift:"accessToken,1" frugal:"1,default,string" json:"accessToken"`
+	Uid string `thrift:"uid,1" frugal:"1,default,string" json:"uid"`
 }
 
 func NewUserSvrLogoutArgs() *UserSvrLogoutArgs {
@@ -336,11 +336,11 @@ func NewUserSvrLogoutArgs() *UserSvrLogoutArgs {
 func (p *UserSvrLogoutArgs) InitDefault() {
 }
 
-func (p *UserSvrLogoutArgs) GetAccessToken() (v string) {
-	return p.AccessToken
+func (p *UserSvrLogoutArgs) GetUid() (v string) {
+	return p.Uid
 }
-func (p *UserSvrLogoutArgs) SetAccessToken(val string) {
-	p.AccessToken = val
+func (p *UserSvrLogoutArgs) SetUid(val string) {
+	p.Uid = val
 }
 
 func (p *UserSvrLogoutArgs) String() string {
@@ -351,7 +351,7 @@ func (p *UserSvrLogoutArgs) String() string {
 }
 
 var fieldIDToName_UserSvrLogoutArgs = map[int16]string{
-	1: "accessToken",
+	1: "uid",
 }
 
 type UserSvrLogoutResult struct {
@@ -374,7 +374,7 @@ func (p *UserSvrLogoutResult) String() string {
 var fieldIDToName_UserSvrLogoutResult = map[int16]string{}
 
 type UserSvrRefreshAccessTokenArgs struct {
-	RefreshToken string `thrift:"refreshToken,1" frugal:"1,default,string" json:"refreshToken"`
+	Claims *JWTClaims `thrift:"claims,1" frugal:"1,default,JWTClaims" json:"claims"`
 }
 
 func NewUserSvrRefreshAccessTokenArgs() *UserSvrRefreshAccessTokenArgs {
@@ -384,11 +384,20 @@ func NewUserSvrRefreshAccessTokenArgs() *UserSvrRefreshAccessTokenArgs {
 func (p *UserSvrRefreshAccessTokenArgs) InitDefault() {
 }
 
-func (p *UserSvrRefreshAccessTokenArgs) GetRefreshToken() (v string) {
-	return p.RefreshToken
+var UserSvrRefreshAccessTokenArgs_Claims_DEFAULT *JWTClaims
+
+func (p *UserSvrRefreshAccessTokenArgs) GetClaims() (v *JWTClaims) {
+	if !p.IsSetClaims() {
+		return UserSvrRefreshAccessTokenArgs_Claims_DEFAULT
+	}
+	return p.Claims
 }
-func (p *UserSvrRefreshAccessTokenArgs) SetRefreshToken(val string) {
-	p.RefreshToken = val
+func (p *UserSvrRefreshAccessTokenArgs) SetClaims(val *JWTClaims) {
+	p.Claims = val
+}
+
+func (p *UserSvrRefreshAccessTokenArgs) IsSetClaims() bool {
+	return p.Claims != nil
 }
 
 func (p *UserSvrRefreshAccessTokenArgs) String() string {
@@ -399,7 +408,7 @@ func (p *UserSvrRefreshAccessTokenArgs) String() string {
 }
 
 var fieldIDToName_UserSvrRefreshAccessTokenArgs = map[int16]string{
-	1: "refreshToken",
+	1: "claims",
 }
 
 type UserSvrRefreshAccessTokenResult struct {

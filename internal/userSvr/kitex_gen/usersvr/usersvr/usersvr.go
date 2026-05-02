@@ -124,7 +124,7 @@ func newServiceInfo(hasStreaming bool, keepStreamingMethods bool, keepNonStreami
 func registerUserHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
 	realArg := arg.(*usersvr.UserSvrRegisterUserArgs)
 
-	err := handler.(usersvr.UserSvr).RegisterUser(ctx, realArg.Uid, realArg.Password)
+	err := handler.(usersvr.UserSvr).RegisterUser(ctx, realArg.Email, realArg.Password)
 	if err != nil {
 		return err
 	}
@@ -142,7 +142,7 @@ func newUserSvrRegisterUserResult() interface{} {
 func loginHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
 	realArg := arg.(*usersvr.UserSvrLoginArgs)
 	realResult := result.(*usersvr.UserSvrLoginResult)
-	success, err := handler.(usersvr.UserSvr).Login(ctx, realArg.Uid, realArg.Password)
+	success, err := handler.(usersvr.UserSvr).Login(ctx, realArg.Email, realArg.Password)
 	if err != nil {
 		return err
 	}
@@ -160,7 +160,7 @@ func newUserSvrLoginResult() interface{} {
 func logoutHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
 	realArg := arg.(*usersvr.UserSvrLogoutArgs)
 
-	err := handler.(usersvr.UserSvr).Logout(ctx, realArg.AccessToken)
+	err := handler.(usersvr.UserSvr).Logout(ctx, realArg.Uid)
 	if err != nil {
 		return err
 	}
@@ -178,7 +178,7 @@ func newUserSvrLogoutResult() interface{} {
 func refreshAccessTokenHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
 	realArg := arg.(*usersvr.UserSvrRefreshAccessTokenArgs)
 	realResult := result.(*usersvr.UserSvrRefreshAccessTokenResult)
-	success, err := handler.(usersvr.UserSvr).RefreshAccessToken(ctx, realArg.RefreshToken)
+	success, err := handler.(usersvr.UserSvr).RefreshAccessToken(ctx, realArg.Claims)
 	if err != nil {
 		return err
 	}
@@ -239,9 +239,9 @@ func newServiceClient(c client.Client) *kClient {
 	}
 }
 
-func (p *kClient) RegisterUser(ctx context.Context, uid string, password string) (err error) {
+func (p *kClient) RegisterUser(ctx context.Context, email string, password string) (err error) {
 	var _args usersvr.UserSvrRegisterUserArgs
-	_args.Uid = uid
+	_args.Email = email
 	_args.Password = password
 	var _result usersvr.UserSvrRegisterUserResult
 	if err = p.c.Call(ctx, "RegisterUser", &_args, &_result); err != nil {
@@ -250,9 +250,9 @@ func (p *kClient) RegisterUser(ctx context.Context, uid string, password string)
 	return nil
 }
 
-func (p *kClient) Login(ctx context.Context, uid string, password string) (r *usersvr.JWTToken, err error) {
+func (p *kClient) Login(ctx context.Context, email string, password string) (r *usersvr.JWTToken, err error) {
 	var _args usersvr.UserSvrLoginArgs
-	_args.Uid = uid
+	_args.Email = email
 	_args.Password = password
 	var _result usersvr.UserSvrLoginResult
 	if err = p.c.Call(ctx, "Login", &_args, &_result); err != nil {
@@ -261,9 +261,9 @@ func (p *kClient) Login(ctx context.Context, uid string, password string) (r *us
 	return _result.GetSuccess(), nil
 }
 
-func (p *kClient) Logout(ctx context.Context, accessToken string) (err error) {
+func (p *kClient) Logout(ctx context.Context, uid string) (err error) {
 	var _args usersvr.UserSvrLogoutArgs
-	_args.AccessToken = accessToken
+	_args.Uid = uid
 	var _result usersvr.UserSvrLogoutResult
 	if err = p.c.Call(ctx, "Logout", &_args, &_result); err != nil {
 		return
@@ -271,9 +271,9 @@ func (p *kClient) Logout(ctx context.Context, accessToken string) (err error) {
 	return nil
 }
 
-func (p *kClient) RefreshAccessToken(ctx context.Context, refreshToken string) (r string, err error) {
+func (p *kClient) RefreshAccessToken(ctx context.Context, claims *usersvr.JWTClaims) (r string, err error) {
 	var _args usersvr.UserSvrRefreshAccessTokenArgs
-	_args.RefreshToken = refreshToken
+	_args.Claims = claims
 	var _result usersvr.UserSvrRefreshAccessTokenResult
 	if err = p.c.Call(ctx, "RefreshAccessToken", &_args, &_result); err != nil {
 		return

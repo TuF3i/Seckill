@@ -1,7 +1,8 @@
 package dto
 
 var (
-	EmptyJWTString = Response{Status: 10001, Info: "Empty JWT String"} // EmptyJWTString 空JWT字符串
+	OperationSuccess = Response{Status: 20000, Info: "Operation Success"}
+	EmptyJWTString   = Response{Status: 10001, Info: "Empty JWT String"} // EmptyJWTString 空JWT字符串
 )
 
 type FinalResponse struct {
@@ -21,7 +22,7 @@ func (r Response) Error() string {
 
 func InternalError(err error) Response {
 	return Response{
-		Status: 500,
+		Status: 50000,
 		Info:   err.Error(),
 	}
 }

@@ -12,7 +12,7 @@ import (
 var (
 	accessSecret  = []byte("Welcome_To_Red_Rock")
 	refreshSecret = []byte("I_Want_To_Join_Red_Rock")
-	AccessTTL     = 15 * time.Minute   // 访问令牌有效期
+	AccessTTL     = 24 * time.Hour     // 访问令牌有效期
 	RefreshTTL    = 7 * 24 * time.Hour // 刷新令牌有效期
 
 	issuer = "Seckill.Gateway"

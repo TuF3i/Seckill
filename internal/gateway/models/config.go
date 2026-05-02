@@ -6,8 +6,9 @@ type Config struct {
 }
 
 type HertzConfigEntry struct {
-	ListenAddr string
-	ListenPort string
+	ListenAddr     string
+	ListenPort     string
+	MonitoringPort string
 }
 
 type NacosConfigEntry struct {

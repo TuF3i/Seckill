@@ -11,7 +11,7 @@ import (
 	"github.com/cloudwego/hertz/pkg/protocol/consts"
 )
 
-func (r Middleware) JWTAuthMiddleware() app.HandlerFunc {
+func (r *Middleware) JWTAuthMiddleware() app.HandlerFunc {
 	return func(ctx context.Context, c *app.RequestContext) {
 		// 从请求头提取Authorization-Header
 		authHeader := string(c.GetHeader("Authorization"))
@@ -35,7 +35,7 @@ func (r Middleware) JWTAuthMiddleware() app.HandlerFunc {
 	}
 }
 
-func (r Middleware) JWTRefreshMiddleware() app.HandlerFunc {
+func (r *Middleware) JWTRefreshMiddleware() app.HandlerFunc {
 	return func(ctx context.Context, c *app.RequestContext) {
 		// 从请求头提取Authorization-Header
 		authHeader := string(c.GetHeader("Authorization"))
