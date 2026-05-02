@@ -31,3 +31,15 @@ func (s *UserSvrImpl) RefreshAccessToken(ctx context.Context, refreshToken strin
 	// TODO: Your code here...
 	return
 }
+
+// VerifyAccessToken implements the UserSvrImpl interface.
+func (s *UserSvrImpl) VerifyAccessToken(ctx context.Context, accessToken string) (resp *usersvr.JWTClaims, err error) {
+	// TODO: Your code here...
+	return
+}
+
+// VerifyRefreshToken implements the UserSvrImpl interface.
+func (s *UserSvrImpl) VerifyRefreshToken(ctx context.Context, refreshToken string) (resp *usersvr.JWTClaims, err error) {
+	// TODO: Your code here...
+	return
+}

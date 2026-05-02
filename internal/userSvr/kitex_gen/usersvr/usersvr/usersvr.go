@@ -41,6 +41,20 @@ var serviceMethods = map[string]kitex.MethodInfo{
 		false,
 		kitex.WithStreamingMode(kitex.StreamingNone),
 	),
+	"VerifyAccessToken": kitex.NewMethodInfo(
+		verifyAccessTokenHandler,
+		newUserSvrVerifyAccessTokenArgs,
+		newUserSvrVerifyAccessTokenResult,
+		false,
+		kitex.WithStreamingMode(kitex.StreamingNone),
+	),
+	"VerifyRefreshToken": kitex.NewMethodInfo(
+		verifyRefreshTokenHandler,
+		newUserSvrVerifyRefreshTokenArgs,
+		newUserSvrVerifyRefreshTokenResult,
+		false,
+		kitex.WithStreamingMode(kitex.StreamingNone),
+	),
 }
 
 var (
@@ -179,6 +193,42 @@ func newUserSvrRefreshAccessTokenResult() interface{} {
 	return usersvr.NewUserSvrRefreshAccessTokenResult()
 }
 
+func verifyAccessTokenHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*usersvr.UserSvrVerifyAccessTokenArgs)
+	realResult := result.(*usersvr.UserSvrVerifyAccessTokenResult)
+	success, err := handler.(usersvr.UserSvr).VerifyAccessToken(ctx, realArg.AccessToken)
+	if err != nil {
+		return err
+	}
+	realResult.Success = success
+	return nil
+}
+func newUserSvrVerifyAccessTokenArgs() interface{} {
+	return usersvr.NewUserSvrVerifyAccessTokenArgs()
+}
+
+func newUserSvrVerifyAccessTokenResult() interface{} {
+	return usersvr.NewUserSvrVerifyAccessTokenResult()
+}
+
+func verifyRefreshTokenHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*usersvr.UserSvrVerifyRefreshTokenArgs)
+	realResult := result.(*usersvr.UserSvrVerifyRefreshTokenResult)
+	success, err := handler.(usersvr.UserSvr).VerifyRefreshToken(ctx, realArg.RefreshToken)
+	if err != nil {
+		return err
+	}
+	realResult.Success = success
+	return nil
+}
+func newUserSvrVerifyRefreshTokenArgs() interface{} {
+	return usersvr.NewUserSvrVerifyRefreshTokenArgs()
+}
+
+func newUserSvrVerifyRefreshTokenResult() interface{} {
+	return usersvr.NewUserSvrVerifyRefreshTokenResult()
+}
+
 type kClient struct {
 	c client.Client
 }
@@ -226,6 +276,26 @@ func (p *kClient) RefreshAccessToken(ctx context.Context, refreshToken string) (
 	_args.RefreshToken = refreshToken
 	var _result usersvr.UserSvrRefreshAccessTokenResult
 	if err = p.c.Call(ctx, "RefreshAccessToken", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) VerifyAccessToken(ctx context.Context, accessToken string) (r *usersvr.JWTClaims, err error) {
+	var _args usersvr.UserSvrVerifyAccessTokenArgs
+	_args.AccessToken = accessToken
+	var _result usersvr.UserSvrVerifyAccessTokenResult
+	if err = p.c.Call(ctx, "VerifyAccessToken", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) VerifyRefreshToken(ctx context.Context, refreshToken string) (r *usersvr.JWTClaims, err error) {
+	var _args usersvr.UserSvrVerifyRefreshTokenArgs
+	_args.RefreshToken = refreshToken
+	var _result usersvr.UserSvrVerifyRefreshTokenResult
+	if err = p.c.Call(ctx, "VerifyRefreshToken", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil

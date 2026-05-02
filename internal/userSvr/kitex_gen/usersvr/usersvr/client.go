@@ -15,6 +15,8 @@ type Client interface {
 	Login(ctx context.Context, uid string, password string, callOptions ...callopt.Option) (r *usersvr.JWTToken, err error)
 	Logout(ctx context.Context, accessToken string, callOptions ...callopt.Option) (err error)
 	RefreshAccessToken(ctx context.Context, refreshToken string, callOptions ...callopt.Option) (r string, err error)
+	VerifyAccessToken(ctx context.Context, accessToken string, callOptions ...callopt.Option) (r *usersvr.JWTClaims, err error)
+	VerifyRefreshToken(ctx context.Context, refreshToken string, callOptions ...callopt.Option) (r *usersvr.JWTClaims, err error)
 }
 
 // NewClient creates a client for the service defined in IDL.
@@ -33,7 +35,7 @@ func NewClient(destService string, opts ...client.Option) (Client, error) {
 	}, nil
 }
 
-// MustNewClient creates a client for the service defined in IDL. It panics if any error occurs.
+// MustNewClient creates a client for the service defined in IDL. It panics if any lerror occurs.
 func MustNewClient(destService string, opts ...client.Option) Client {
 	kc, err := NewClient(destService, opts...)
 	if err != nil {
@@ -64,4 +66,14 @@ func (p *kUserSvrClient) Logout(ctx context.Context, accessToken string, callOpt
 func (p *kUserSvrClient) RefreshAccessToken(ctx context.Context, refreshToken string, callOptions ...callopt.Option) (r string, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.RefreshAccessToken(ctx, refreshToken)
+}
+
+func (p *kUserSvrClient) VerifyAccessToken(ctx context.Context, accessToken string, callOptions ...callopt.Option) (r *usersvr.JWTClaims, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.VerifyAccessToken(ctx, accessToken)
+}
+
+func (p *kUserSvrClient) VerifyRefreshToken(ctx context.Context, refreshToken string, callOptions ...callopt.Option) (r *usersvr.JWTClaims, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.VerifyRefreshToken(ctx, refreshToken)
 }

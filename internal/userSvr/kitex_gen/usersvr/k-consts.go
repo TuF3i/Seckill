@@ -1,4 +1,4 @@
 package usersvr
 
-// KitexUnusedProtection is used to prevent 'imported and not used' error.
+// KitexUnusedProtection is used to prevent 'imported and not used' lerror.
 var KitexUnusedProtection = struct{}{}

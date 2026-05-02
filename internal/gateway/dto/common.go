@@ -1,13 +1,17 @@
 package dto
 
+var (
+	EmptyJWTString = Response{Status: 10001, Info: "Empty JWT String"} // EmptyJWTString 空JWT字符串
+)
+
 type FinalResponse struct {
-	Status int64       `json:"status"`
+	Status int32       `json:"status"`
 	Info   string      `json:"info"`
 	Data   interface{} `json:"data"`
 }
 
 type Response struct {
-	Status int64  `json:"status"`
+	Status int32  `json:"status"`
 	Info   string `json:"info"`
 }
 
@@ -24,4 +28,8 @@ func InternalError(err error) Response {
 
 func GenFinalResponse(response Response, data interface{}) FinalResponse {
 	return FinalResponse{Status: response.Status, Info: response.Info, Data: data}
+}
+
+func GenBizErrorResponse(status int32, info string) Response {
+	return Response{Status: status, Info: info}
 }

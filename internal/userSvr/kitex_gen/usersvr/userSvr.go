@@ -4,8 +4,94 @@ package usersvr
 
 import (
 	"context"
+	"database/sql"
+	"database/sql/driver"
 	"fmt"
 )
+
+type UserRole int64
+
+const (
+	UserRole_ADMIN       UserRole = 1
+	UserRole_SIMPLE_USER UserRole = 2
+)
+
+func (p UserRole) String() string {
+	switch p {
+	case UserRole_ADMIN:
+		return "ADMIN"
+	case UserRole_SIMPLE_USER:
+		return "SIMPLE_USER"
+	}
+	return "<UNSET>"
+}
+
+func UserRoleFromString(s string) (UserRole, error) {
+	switch s {
+	case "ADMIN":
+		return UserRole_ADMIN, nil
+	case "SIMPLE_USER":
+		return UserRole_SIMPLE_USER, nil
+	}
+	return UserRole(0), fmt.Errorf("not a valid UserRole string")
+}
+
+func UserRolePtr(v UserRole) *UserRole { return &v }
+func (p *UserRole) Scan(value interface{}) (err error) {
+	var result sql.NullInt64
+	err = result.Scan(value)
+	*p = UserRole(result.Int64)
+	return
+}
+
+func (p *UserRole) Value() (driver.Value, error) {
+	if p == nil {
+		return nil, nil
+	}
+	return int64(*p), nil
+}
+
+type ClaimType int64
+
+const (
+	ClaimType_ACCESS  ClaimType = 1
+	ClaimType_REFRESH ClaimType = 2
+)
+
+func (p ClaimType) String() string {
+	switch p {
+	case ClaimType_ACCESS:
+		return "ACCESS"
+	case ClaimType_REFRESH:
+		return "REFRESH"
+	}
+	return "<UNSET>"
+}
+
+func ClaimTypeFromString(s string) (ClaimType, error) {
+	switch s {
+	case "ACCESS":
+		return ClaimType_ACCESS, nil
+	case "REFRESH":
+		return ClaimType_REFRESH, nil
+	}
+	return ClaimType(0), fmt.Errorf("not a valid ClaimType string")
+}
+
+func ClaimTypePtr(v ClaimType) *ClaimType { return &v }
+func (p *ClaimType) Scan(value interface{}) (err error) {
+	var result sql.NullInt64
+	err = result.Scan(value)
+	*p = ClaimType(result.Int64)
+	return
+}
+
+func (p *ClaimType) Value() (driver.Value, error) {
+	if p == nil {
+		return nil, nil
+	}
+	return int64(*p), nil
+}
 
 type JWTToken struct {
 	AccessToken  string `thrift:"accessToken,1,required" frugal:"1,required,string" json:"accessToken"`
@@ -45,6 +131,53 @@ var fieldIDToName_JWTToken = map[int16]string{
 	2: "refreshToken",
 }
 
+type JWTClaims struct {
+	UID  string    `thrift:"UID,1,required" frugal:"1,required,string" json:"UID"`
+	Role UserRole  `thrift:"Role,2,required" frugal:"2,required,UserRole" json:"Role"`
+	Type ClaimType `thrift:"Type,3,required" frugal:"3,required,ClaimType" json:"Type"`
+}
+
+func NewJWTClaims() *JWTClaims {
+	return &JWTClaims{}
+}
+
+func (p *JWTClaims) InitDefault() {
+}
+
+func (p *JWTClaims) GetUID() (v string) {
+	return p.UID
+}
+
+func (p *JWTClaims) GetRole() (v UserRole) {
+	return p.Role
+}
+
+func (p *JWTClaims) GetType() (v ClaimType) {
+	return p.Type
+}
+func (p *JWTClaims) SetUID(val string) {
+	p.UID = val
+}
+func (p *JWTClaims) SetRole(val UserRole) {
+	p.Role = val
+}
+func (p *JWTClaims) SetType(val ClaimType) {
+	p.Type = val
+}
+
+func (p *JWTClaims) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("JWTClaims(%+v)", *p)
+}
+
+var fieldIDToName_JWTClaims = map[int16]string{
+	1: "UID",
+	2: "Role",
+	3: "Type",
+}
+
 type UserSvr interface {
 	RegisterUser(ctx context.Context, uid string, password string) (err error)
 
@@ -53,6 +186,10 @@ type UserSvr interface {
 	Logout(ctx context.Context, accessToken string) (err error)
 
 	RefreshAccessToken(ctx context.Context, refreshToken string) (r string, err error)
+
+	VerifyAccessToken(ctx context.Context, accessToken string) (r *JWTClaims, err error)
+
+	VerifyRefreshToken(ctx context.Context, refreshToken string) (r *JWTClaims, err error)
 }
 
 type UserSvrRegisterUserArgs struct {
@@ -300,5 +437,139 @@ func (p *UserSvrRefreshAccessTokenResult) String() string {
 }
 
 var fieldIDToName_UserSvrRefreshAccessTokenResult = map[int16]string{
+	0: "success",
+}
+
+type UserSvrVerifyAccessTokenArgs struct {
+	AccessToken string `thrift:"accessToken,1" frugal:"1,default,string" json:"accessToken"`
+}
+
+func NewUserSvrVerifyAccessTokenArgs() *UserSvrVerifyAccessTokenArgs {
+	return &UserSvrVerifyAccessTokenArgs{}
+}
+
+func (p *UserSvrVerifyAccessTokenArgs) InitDefault() {
+}
+
+func (p *UserSvrVerifyAccessTokenArgs) GetAccessToken() (v string) {
+	return p.AccessToken
+}
+func (p *UserSvrVerifyAccessTokenArgs) SetAccessToken(val string) {
+	p.AccessToken = val
+}
+
+func (p *UserSvrVerifyAccessTokenArgs) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("UserSvrVerifyAccessTokenArgs(%+v)", *p)
+}
+
+var fieldIDToName_UserSvrVerifyAccessTokenArgs = map[int16]string{
+	1: "accessToken",
+}
+
+type UserSvrVerifyAccessTokenResult struct {
+	Success *JWTClaims `thrift:"success,0,optional" frugal:"0,optional,JWTClaims" json:"success,omitempty"`
+}
+
+func NewUserSvrVerifyAccessTokenResult() *UserSvrVerifyAccessTokenResult {
+	return &UserSvrVerifyAccessTokenResult{}
+}
+
+func (p *UserSvrVerifyAccessTokenResult) InitDefault() {
+}
+
+var UserSvrVerifyAccessTokenResult_Success_DEFAULT *JWTClaims
+
+func (p *UserSvrVerifyAccessTokenResult) GetSuccess() (v *JWTClaims) {
+	if !p.IsSetSuccess() {
+		return UserSvrVerifyAccessTokenResult_Success_DEFAULT
+	}
+	return p.Success
+}
+func (p *UserSvrVerifyAccessTokenResult) SetSuccess(x interface{}) {
+	p.Success = x.(*JWTClaims)
+}
+
+func (p *UserSvrVerifyAccessTokenResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
+func (p *UserSvrVerifyAccessTokenResult) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("UserSvrVerifyAccessTokenResult(%+v)", *p)
+}
+
+var fieldIDToName_UserSvrVerifyAccessTokenResult = map[int16]string{
+	0: "success",
+}
+
+type UserSvrVerifyRefreshTokenArgs struct {
+	RefreshToken string `thrift:"refreshToken,1" frugal:"1,default,string" json:"refreshToken"`
+}
+
+func NewUserSvrVerifyRefreshTokenArgs() *UserSvrVerifyRefreshTokenArgs {
+	return &UserSvrVerifyRefreshTokenArgs{}
+}
+
+func (p *UserSvrVerifyRefreshTokenArgs) InitDefault() {
+}
+
+func (p *UserSvrVerifyRefreshTokenArgs) GetRefreshToken() (v string) {
+	return p.RefreshToken
+}
+func (p *UserSvrVerifyRefreshTokenArgs) SetRefreshToken(val string) {
+	p.RefreshToken = val
+}
+
+func (p *UserSvrVerifyRefreshTokenArgs) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("UserSvrVerifyRefreshTokenArgs(%+v)", *p)
+}
+
+var fieldIDToName_UserSvrVerifyRefreshTokenArgs = map[int16]string{
+	1: "refreshToken",
+}
+
+type UserSvrVerifyRefreshTokenResult struct {
+	Success *JWTClaims `thrift:"success,0,optional" frugal:"0,optional,JWTClaims" json:"success,omitempty"`
+}
+
+func NewUserSvrVerifyRefreshTokenResult() *UserSvrVerifyRefreshTokenResult {
+	return &UserSvrVerifyRefreshTokenResult{}
+}
+
+func (p *UserSvrVerifyRefreshTokenResult) InitDefault() {
+}
+
+var UserSvrVerifyRefreshTokenResult_Success_DEFAULT *JWTClaims
+
+func (p *UserSvrVerifyRefreshTokenResult) GetSuccess() (v *JWTClaims) {
+	if !p.IsSetSuccess() {
+		return UserSvrVerifyRefreshTokenResult_Success_DEFAULT
+	}
+	return p.Success
+}
+func (p *UserSvrVerifyRefreshTokenResult) SetSuccess(x interface{}) {
+	p.Success = x.(*JWTClaims)
+}
+
+func (p *UserSvrVerifyRefreshTokenResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
+func (p *UserSvrVerifyRefreshTokenResult) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("UserSvrVerifyRefreshTokenResult(%+v)", *p)
+}
+
+var fieldIDToName_UserSvrVerifyRefreshTokenResult = map[int16]string{
 	0: "success",
 }
