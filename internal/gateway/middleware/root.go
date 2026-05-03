@@ -1,9 +1,14 @@
 package middleware
 
-import "seckill/internal/userSvr/kitex_gen/usersvr/usersvr"
+import (
+	"seckill/internal/userSvr/kitex_gen/usersvr/usersvr"
+
+	"github.com/bwmarrin/snowflake"
+)
 
 type MiddlewareReliance struct {
-	UserSvr usersvr.Client
+	UserSvr   usersvr.Client
+	SnowFlake *snowflake.Node
 }
 
 type Middleware struct {

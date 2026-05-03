@@ -1,6 +1,8 @@
 package handler
 
-import "seckill/internal/userSvr/kitex_gen/usersvr/usersvr"
+import (
+	"seckill/internal/userSvr/kitex_gen/usersvr/usersvr"
+)
 
 type HandlerReliance struct {
 	UserSvr usersvr.Client

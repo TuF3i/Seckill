@@ -1,4 +1,4 @@
-package config
+package lconfig
 
 import "seckill/internal/gateway/models"
 
