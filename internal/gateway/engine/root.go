@@ -20,3 +20,7 @@ type Engine struct {
 func NewEngine(m *RouterReliance) *Engine {
 	return &Engine{RouterReliance: m}
 }
+
+func (r *Engine) Hertz() *server.Hertz {
+	return r.h
+}

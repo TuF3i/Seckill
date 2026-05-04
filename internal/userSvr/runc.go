@@ -1,17 +1,11 @@
 package main
 
 import (
-	"log"
-	"seckill/internal/userSvr/core/handler"
-	usersvr "seckill/internal/userSvr/kitex_gen/usersvr/usersvr"
+	userSvr "seckill/internal/userSvr/core/app"
 )
 
 func main() {
-	svr := usersvr.NewServer(new(handler.UserSvrImpl))
-
-	err := svr.Run()
-
-	if err != nil {
-		log.Println(err.Error())
-	}
+	userSvr.OnCreate()
+	defer userSvr.OnDestory()
+	userSvr.RunServer()
 }

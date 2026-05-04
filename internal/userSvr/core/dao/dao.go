@@ -7,7 +7,7 @@ import (
 )
 
 func (r *Dao) AddUser(uid string, email string, password string) error {
-	tx := r.pgdb.Begin()
+	tx := r.Pgdb.Begin()
 
 	data := &models.User{
 		Uid:      uid,
@@ -29,7 +29,7 @@ func (r *Dao) AddUser(uid string, email string, password string) error {
 func (r *Dao) GetUserInfo(email string) (*models.User, error) {
 	var data models.User
 
-	err := r.pgdb.Where("email = ?", email).First(&data).Error
+	err := r.Pgdb.Where("email = ?", email).First(&data).Error
 	if err != nil {
 		return nil, err
 	}

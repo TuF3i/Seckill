@@ -6,8 +6,8 @@ import (
 )
 
 type UserSvrImplReliance struct {
-	dao   *dao.Dao
-	cache *cache.Cache
+	Dao   *dao.Dao
+	Cache *cache.Cache
 }
 
 type UserSvrImpl struct {
