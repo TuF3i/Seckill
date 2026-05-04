@@ -4,6 +4,7 @@ package itemsvr
 
 import (
 	"context"
+	itemsvr "seckill/internal/itemSvr/kitex_gen/itemsvr"
 
 	client "github.com/cloudwego/kitex/client"
 	callopt "github.com/cloudwego/kitex/client/callopt"
@@ -14,6 +15,7 @@ type Client interface {
 	DeleteItem(ctx context.Context, id string, callOptions ...callopt.Option) (err error)
 	StartFlashSale(ctx context.Context, itemId string, callOptions ...callopt.Option) (err error)
 	StopFlashSale(ctx context.Context, itemId string, callOptions ...callopt.Option) (err error)
+	ListItems(ctx context.Context, uid string, role string, callOptions ...callopt.Option) (r []*itemsvr.ItemInfo, err error)
 }
 
 func NewClient(destService string, opts ...client.Option) (Client, error) {
@@ -61,4 +63,9 @@ func (p *kItemSvrClient) StartFlashSale(ctx context.Context, itemId string, call
 func (p *kItemSvrClient) StopFlashSale(ctx context.Context, itemId string, callOptions ...callopt.Option) (err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.StopFlashSale(ctx, itemId)
+}
+
+func (p *kItemSvrClient) ListItems(ctx context.Context, uid string, role string, callOptions ...callopt.Option) (r []*itemsvr.ItemInfo, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.ListItems(ctx, uid, role)
 }

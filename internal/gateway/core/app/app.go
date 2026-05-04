@@ -6,6 +6,9 @@ import (
 	"seckill/internal/gateway/middleware"
 	"seckill/internal/gateway/pkg/lconfig"
 	"seckill/internal/gateway/router"
+	itemSvr "seckill/internal/itemSvr/kitex_gen/itemsvr/itemsvr"
+	orderSvr "seckill/internal/orderSvr/kitex_gen/ordersvr/ordersvr"
+	paymentSvr "seckill/internal/paymentSvr/kitex_gen/paymentsvr/paymentsvr"
 	userSvr "seckill/internal/userSvr/kitex_gen/usersvr/usersvr"
 
 	"github.com/bwmarrin/snowflake"
@@ -26,8 +29,26 @@ func OnCreate() {
 		panic(err)
 	}
 
+	itemClient, err := itemSvr.NewClient("ItemSvr")
+	if err != nil {
+		panic(err)
+	}
+
+	orderClient, err := orderSvr.NewClient("OrderSvr")
+	if err != nil {
+		panic(err)
+	}
+
+	paymentClient, err := paymentSvr.NewClient("PaymentSvr")
+	if err != nil {
+		panic(err)
+	}
+
 	h := handler.NewHandler(&handler.HandlerReliance{
-		UserSvr: userClient,
+		UserSvr:    userClient,
+		ItemSvr:    itemClient,
+		OrderSvr:   orderClient,
+		PaymentSvr: paymentClient,
 	})
 
 	m := middleware.NewMiddleware(&middleware.MiddlewareReliance{

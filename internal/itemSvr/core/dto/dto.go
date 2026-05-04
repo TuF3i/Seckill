@@ -8,6 +8,7 @@ var (
 	ItemNotFound      = Response{Status: 41005, Info: "Item Not Found"}
 	FlashAlreadyStart = Response{Status: 41006, Info: "Flash Sale Already Started"}
 	FlashNotStart     = Response{Status: 41007, Info: "Flash Sale Not Started"}
+	PermissionDenied  = Response{Status: 41008, Info: "Permission Denied"}
 )
 
 type Response struct {

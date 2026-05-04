@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"seckill/internal/userSvr/core/dto"
-	usersvr "seckill/internal/userSvr/kitex_gen/usersvr"
+	"seckill/internal/userSvr/kitex_gen/usersvr"
 	"seckill/pkg/enumTransfer"
 	"seckill/pkg/jwt"
 

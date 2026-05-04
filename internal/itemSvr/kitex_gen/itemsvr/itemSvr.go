@@ -85,6 +85,8 @@ type ItemSvr interface {
 	StartFlashSale(ctx context.Context, itemId string) (err error)
 
 	StopFlashSale(ctx context.Context, itemId string) (err error)
+
+	ListItems(ctx context.Context, uid string, role string) (r []*ItemInfo, err error)
 }
 
 type ItemSvrAddItemArgs struct {
@@ -332,3 +334,82 @@ func (p *ItemSvrStopFlashSaleResult) String() string {
 }
 
 var fieldIDToName_ItemSvrStopFlashSaleResult = map[int16]string{}
+
+type ItemSvrListItemsArgs struct {
+	Uid  string `thrift:"uid,1" frugal:"1,default,string" json:"uid"`
+	Role string `thrift:"role,2" frugal:"2,default,string" json:"role"`
+}
+
+func NewItemSvrListItemsArgs() *ItemSvrListItemsArgs {
+	return &ItemSvrListItemsArgs{}
+}
+
+func (p *ItemSvrListItemsArgs) InitDefault() {
+}
+
+func (p *ItemSvrListItemsArgs) GetUid() (v string) {
+	return p.Uid
+}
+
+func (p *ItemSvrListItemsArgs) GetRole() (v string) {
+	return p.Role
+}
+
+func (p *ItemSvrListItemsArgs) SetUid(val string) {
+	p.Uid = val
+}
+
+func (p *ItemSvrListItemsArgs) SetRole(val string) {
+	p.Role = val
+}
+
+func (p *ItemSvrListItemsArgs) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ItemSvrListItemsArgs(%+v)", *p)
+}
+
+var fieldIDToName_ItemSvrListItemsArgs = map[int16]string{
+	1: "uid",
+	2: "role",
+}
+
+type ItemSvrListItemsResult struct {
+	Success []*ItemInfo `thrift:"success,0,optional" frugal:"0,optional,list<ItemInfo>" json:"success,omitempty"`
+}
+
+func NewItemSvrListItemsResult() *ItemSvrListItemsResult {
+	return &ItemSvrListItemsResult{}
+}
+
+func (p *ItemSvrListItemsResult) InitDefault() {
+}
+
+var ItemSvrListItemsResult_Success_DEFAULT []*ItemInfo
+
+func (p *ItemSvrListItemsResult) GetSuccess() (v []*ItemInfo) {
+	if !p.IsSetSuccess() {
+		return ItemSvrListItemsResult_Success_DEFAULT
+	}
+	return p.Success
+}
+
+func (p *ItemSvrListItemsResult) SetSuccess(x interface{}) {
+	p.Success = x.([]*ItemInfo)
+}
+
+func (p *ItemSvrListItemsResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
+func (p *ItemSvrListItemsResult) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ItemSvrListItemsResult(%+v)", *p)
+}
+
+var fieldIDToName_ItemSvrListItemsResult = map[int16]string{
+	0: "success",
+}

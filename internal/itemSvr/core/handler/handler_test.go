@@ -123,3 +123,18 @@ func TestStopFlashSale_InvalidID(t *testing.T) {
 		t.Errorf("expected status %d, got %d", dto.InvalidItemID.Status, bizErr.BizStatusCode())
 	}
 }
+
+func TestListItems_PermissionDenied(t *testing.T) {
+	s := newTestItemSvrImpl()
+	_, err := s.ListItems(context.Background(), "user1", "SIMPLE_USER")
+	if err == nil {
+		t.Fatal("expected error for non-admin role")
+	}
+	bizErr, ok := kerrors.FromBizStatusError(err)
+	if !ok {
+		t.Fatalf("expected biz status error, got %v", err)
+	}
+	if bizErr.BizStatusCode() != dto.PermissionDenied.Status {
+		t.Errorf("expected status %d, got %d", dto.PermissionDenied.Status, bizErr.BizStatusCode())
+	}
+}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"seckill/internal/itemSvr/core/dto"
+	"seckill/internal/itemSvr/kitex_gen/itemsvr"
 
 	"github.com/cloudwego/kitex/pkg/kerrors"
 	"github.com/google/uuid"
@@ -112,4 +113,38 @@ func (s *ItemSvrImpl) StopFlashSale(ctx context.Context, itemId string) (err err
 	}
 
 	return nil
+}
+
+func (s *ItemSvrImpl) ListItems(ctx context.Context, uid string, role string) (resp []*itemsvr.ItemInfo, err error) {
+	if role != "ADMIN" {
+		return nil, kerrors.NewBizStatusError(dto.PermissionDenied.Status, dto.PermissionDenied.Info)
+	}
+
+	items, err := s.Dao.ListAllItems()
+	if err != nil {
+		return nil, err
+	}
+
+	var result []*itemsvr.ItemInfo
+	for i := range items {
+		info := &itemsvr.ItemInfo{
+			ID:          items[i].ItemId,
+			Name:        items[i].Name,
+			Stock:       items[i].Stock,
+			Price:       items[i].Price,
+			Description: items[i].Description,
+		}
+
+		flashStatus, cacheErr := s.Cache.GetFlashStatus(ctx, items[i].ItemId)
+		if cacheErr == nil && flashStatus == 1 {
+			stock, cacheErr := s.Cache.GetItemStock(ctx, items[i].ItemId)
+			if cacheErr == nil {
+				info.Stock = stock
+			}
+		}
+
+		result = append(result, info)
+	}
+
+	return result, nil
 }

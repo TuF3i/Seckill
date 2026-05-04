@@ -42,6 +42,13 @@ var serviceMethods = map[string]kitex.MethodInfo{
 		false,
 		kitex.WithStreamingMode(kitex.StreamingNone),
 	),
+	"ListItems": kitex.NewMethodInfo(
+		listItemsHandler,
+		newItemSvrListItemsArgs,
+		newItemSvrListItemsResult,
+		false,
+		kitex.WithStreamingMode(kitex.StreamingNone),
+	),
 }
 
 var (
@@ -180,6 +187,25 @@ func newItemSvrStopFlashSaleResult() interface{} {
 	return itemsvr.NewItemSvrStopFlashSaleResult()
 }
 
+func listItemsHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*itemsvr.ItemSvrListItemsArgs)
+	realResult := result.(*itemsvr.ItemSvrListItemsResult)
+	success, err := handler.(itemsvr.ItemSvr).ListItems(ctx, realArg.Uid, realArg.Role)
+	if err != nil {
+		return err
+	}
+	realResult.Success = success
+	return nil
+}
+
+func newItemSvrListItemsArgs() interface{} {
+	return itemsvr.NewItemSvrListItemsArgs()
+}
+
+func newItemSvrListItemsResult() interface{} {
+	return itemsvr.NewItemSvrListItemsResult()
+}
+
 type kClient struct {
 	c client.Client
 }
@@ -231,4 +257,15 @@ func (p *kClient) StopFlashSale(ctx context.Context, itemId string) (err error) 
 		return
 	}
 	return nil
+}
+
+func (p *kClient) ListItems(ctx context.Context, uid string, role string) (r []*itemsvr.ItemInfo, err error) {
+	var _args itemsvr.ItemSvrListItemsArgs
+	_args.Uid = uid
+	_args.Role = role
+	var _result itemsvr.ItemSvrListItemsResult
+	if err = p.c.Call(ctx, "ListItems", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
 }

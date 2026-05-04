@@ -13,4 +13,5 @@ service ItemSvr {
     void DeleteItem(1: string id)
     void StartFlashSale(1: string itemId)
     void StopFlashSale(1: string itemId)
+    list<ItemInfo> ListItems(1: string uid, 2: string role)
 }
