@@ -5,11 +5,6 @@ enum UserRole {
     SIMPLE_USER = 2
 }
 
-enum ClaimType {
-    ACCESS = 1,
-    REFRESH = 2
-}
-
 struct JWTToken {
     1: required string accessToken
     2: required string refreshToken
@@ -18,7 +13,7 @@ struct JWTToken {
 struct JWTClaims {
     1: required string UID
     2: required UserRole Role
-    3: required ClaimType Type
+    3: required string Type
 }
 
 service UserSvr {

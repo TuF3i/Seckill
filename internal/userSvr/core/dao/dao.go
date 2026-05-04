@@ -3,6 +3,7 @@ package dao
 import (
 	"seckill/internal/userSvr/core/models"
 	"seckill/internal/userSvr/kitex_gen/usersvr"
+	"seckill/pkg/enumTransfer"
 )
 
 func (r *Dao) AddUser(uid string, email string, password string) error {
@@ -10,7 +11,7 @@ func (r *Dao) AddUser(uid string, email string, password string) error {
 
 	data := &models.User{
 		Uid:      uid,
-		Role:     usersvr.UserRole_SIMPLE_USER.String(),
+		Role:     enumTransfer.EnumToRoleString(usersvr.UserRole_SIMPLE_USER),
 		Email:    email,
 		Password: password,
 	}

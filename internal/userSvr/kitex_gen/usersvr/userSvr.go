@@ -51,48 +51,6 @@ func (p *UserRole) Value() (driver.Value, error) {
 	return int64(*p), nil
 }
 
-type ClaimType int64
-
-const (
-	ClaimType_ACCESS  ClaimType = 1
-	ClaimType_REFRESH ClaimType = 2
-)
-
-func (p ClaimType) String() string {
-	switch p {
-	case ClaimType_ACCESS:
-		return "ACCESS"
-	case ClaimType_REFRESH:
-		return "REFRESH"
-	}
-	return "<UNSET>"
-}
-
-func ClaimTypeFromString(s string) (ClaimType, error) {
-	switch s {
-	case "ACCESS":
-		return ClaimType_ACCESS, nil
-	case "REFRESH":
-		return ClaimType_REFRESH, nil
-	}
-	return ClaimType(0), fmt.Errorf("not a valid ClaimType string")
-}
-
-func ClaimTypePtr(v ClaimType) *ClaimType { return &v }
-func (p *ClaimType) Scan(value interface{}) (err error) {
-	var result sql.NullInt64
-	err = result.Scan(value)
-	*p = ClaimType(result.Int64)
-	return
-}
-
-func (p *ClaimType) Value() (driver.Value, error) {
-	if p == nil {
-		return nil, nil
-	}
-	return int64(*p), nil
-}
-
 type JWTToken struct {
 	AccessToken  string `thrift:"accessToken,1,required" frugal:"1,required,string" json:"accessToken"`
 	RefreshToken string `thrift:"refreshToken,2,required" frugal:"2,required,string" json:"refreshToken"`
@@ -132,9 +90,9 @@ var fieldIDToName_JWTToken = map[int16]string{
 }
 
 type JWTClaims struct {
-	UID  string    `thrift:"UID,1,required" frugal:"1,required,string" json:"UID"`
-	Role UserRole  `thrift:"Role,2,required" frugal:"2,required,UserRole" json:"Role"`
-	Type ClaimType `thrift:"Type,3,required" frugal:"3,required,ClaimType" json:"Type"`
+	UID  string   `thrift:"UID,1,required" frugal:"1,required,string" json:"UID"`
+	Role UserRole `thrift:"Role,2,required" frugal:"2,required,UserRole" json:"Role"`
+	Type string   `thrift:"Type,3,required" frugal:"3,required,string" json:"Type"`
 }
 
 func NewJWTClaims() *JWTClaims {
@@ -152,7 +110,7 @@ func (p *JWTClaims) GetRole() (v UserRole) {
 	return p.Role
 }
 
-func (p *JWTClaims) GetType() (v ClaimType) {
+func (p *JWTClaims) GetType() (v string) {
 	return p.Type
 }
 func (p *JWTClaims) SetUID(val string) {
@@ -161,7 +119,7 @@ func (p *JWTClaims) SetUID(val string) {
 func (p *JWTClaims) SetRole(val UserRole) {
 	p.Role = val
 }
-func (p *JWTClaims) SetType(val ClaimType) {
+func (p *JWTClaims) SetType(val string) {
 	p.Type = val
 }
 

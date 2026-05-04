@@ -2,6 +2,7 @@
   <dictionary name="project">
     <words>
       <w>addrs</w>
+      <w>kenum</w>
       <w>nacos</w>
       <w>pgdb</w>
       <w>traceid</w>

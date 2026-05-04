@@ -5,6 +5,7 @@ import (
 	"errors"
 	"seckill/internal/userSvr/core/dto"
 	usersvr "seckill/internal/userSvr/kitex_gen/usersvr"
+	"seckill/pkg/enumTransfer"
 	"seckill/pkg/jwt"
 
 	"github.com/cloudwego/kitex/pkg/kerrors"
@@ -113,14 +114,38 @@ func (s *UserSvrImpl) VerifyAccessToken(ctx context.Context, accessToken string)
 	}
 	// 组装data
 	data := &usersvr.JWTClaims{
-		UID: claims.UserID,
-		Role: ,
-		Type: 0,
+		UID:  claims.UserID,
+		Role: enumTransfer.RoleStringToEnum(claims.Role),
+		Type: claims.Type,
 	}
+
+	return data, nil
 }
 
 // VerifyRefreshToken implements the UserSvrImpl interface.
 func (s *UserSvrImpl) VerifyRefreshToken(ctx context.Context, refreshToken string) (resp *usersvr.JWTClaims, err error) {
-	// TODO: Your code here...
-	return
+	// 解析RefreshToken
+	claims, err := jwt.VerifyRefreshToken(refreshToken)
+	if err != nil {
+		return nil, err
+	}
+	// 从cache中校验RefreshToken
+	_refreshToken, err := s.cache.GetRefreshToken(ctx, claims.UserID)
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return nil, kerrors.NewBizStatusError(dto.InvalidRefreshToken.Status, dto.InvalidRefreshToken.Info)
+		}
+		return nil, err
+	}
+	if _refreshToken != refreshToken {
+		return nil, kerrors.NewBizStatusError(dto.WrongRefreshToken.Status, dto.WrongRefreshToken.Info)
+	}
+	// 组装data
+	data := &usersvr.JWTClaims{
+		UID:  claims.UserID,
+		Role: enumTransfer.RoleStringToEnum(claims.Role),
+		Type: claims.Type,
+	}
+
+	return data, nil
 }
