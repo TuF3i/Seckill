@@ -4,7 +4,29 @@ import (
 	"context"
 	"seckill/internal/itemSvr/core/pkg/lkeygen"
 	"time"
+
+	_ "embed"
+
+	"github.com/redis/go-redis/v9"
 )
+
+//go:embed script/order.lua
+var prepareOrderScript string
+
+var prepareOrderCmd = redis.NewScript(prepareOrderScript)
+
+func (r *Cache) PrepareOrderAtomic(ctx context.Context, itemId string, userId string, limitTTL time.Duration) (int64, error) {
+	flashKey := lkeygen.GenItemFlashKey(itemId)
+	stockKey := lkeygen.GenItemStockKey(itemId)
+	limitKey := lkeygen.GenItemPurchaseLimitKey(itemId, userId)
+
+	result, err := prepareOrderCmd.Run(ctx, r.Rdb, []string{flashKey, stockKey, limitKey}, int64(limitTTL.Seconds())).Int64()
+	if err != nil {
+		return 0, err
+	}
+
+	return result, nil
+}
 
 func (r *Cache) WarmUpItemStock(ctx context.Context, itemId string, stock int64) error {
 	key := lkeygen.GenItemStockKey(itemId)
@@ -14,6 +36,16 @@ func (r *Cache) WarmUpItemStock(ctx context.Context, itemId string, stock int64)
 func (r *Cache) GetItemStock(ctx context.Context, itemId string) (int64, error) {
 	key := lkeygen.GenItemStockKey(itemId)
 	return r.Rdb.Get(ctx, key).Int64()
+}
+
+func (r *Cache) DecrItemStock(ctx context.Context, itemId string) (int64, error) {
+	key := lkeygen.GenItemStockKey(itemId)
+	return r.Rdb.Decr(ctx, key).Result()
+}
+
+func (r *Cache) IncrItemStock(ctx context.Context, itemId string) (int64, error) {
+	key := lkeygen.GenItemStockKey(itemId)
+	return r.Rdb.Incr(ctx, key).Result()
 }
 
 func (r *Cache) SetFlashStatus(ctx context.Context, itemId string, status int32) error {

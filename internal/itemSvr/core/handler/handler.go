@@ -4,7 +4,8 @@ import (
 	"context"
 	"errors"
 	"seckill/internal/itemSvr/core/dto"
-	"seckill/internal/itemSvr/kitex_gen/itemsvr"
+	itemsvr "seckill/internal/itemSvr/kitex_gen/itemsvr"
+	"time"
 
 	"github.com/cloudwego/kitex/pkg/kerrors"
 	"github.com/google/uuid"
@@ -20,6 +21,11 @@ func (s *ItemSvrImpl) AddItem(ctx context.Context, name string, stock int64, pri
 	}
 	if price <= 0 {
 		return "", kerrors.NewBizStatusError(dto.InvalidItemPrice.Status, dto.InvalidItemPrice.Info)
+	}
+
+	active, err := s.Dao.HasActiveFlashSale()
+	if err == nil && active {
+		return "", kerrors.NewBizStatusError(dto.FlashSaleActive.Status, dto.FlashSaleActive.Info)
 	}
 
 	itemId := uuid.New().String()
@@ -39,10 +45,12 @@ func (s *ItemSvrImpl) DeleteItem(ctx context.Context, id string) (err error) {
 
 	_, err = s.Dao.GetItem(id)
 	if err != nil {
-		if errors.Is(err, redis.Nil) {
-			return kerrors.NewBizStatusError(dto.ItemNotFound.Status, dto.ItemNotFound.Info)
-		}
-		return err
+		return kerrors.NewBizStatusError(dto.ItemNotFound.Status, dto.ItemNotFound.Info)
+	}
+
+	active, err := s.Dao.HasActiveFlashSale()
+	if err == nil && active {
+		return kerrors.NewBizStatusError(dto.FlashSaleActive.Status, dto.FlashSaleActive.Info)
 	}
 
 	err = s.Dao.DeleteItem(id)
@@ -116,8 +124,32 @@ func (s *ItemSvrImpl) StopFlashSale(ctx context.Context, itemId string) (err err
 }
 
 func (s *ItemSvrImpl) ListItems(ctx context.Context, uid string, role string) (resp []*itemsvr.ItemInfo, err error) {
-	if role != "ADMIN" {
-		return nil, kerrors.NewBizStatusError(dto.PermissionDenied.Status, dto.PermissionDenied.Info)
+	active, err := s.Dao.HasActiveFlashSale()
+	if err != nil {
+		return nil, err
+	}
+
+	if !active {
+		if role != "ADMIN" {
+			return nil, kerrors.NewBizStatusError(dto.FlashNotStart.Status, dto.FlashNotStart.Info)
+		}
+
+		items, err := s.Dao.ListAllItems()
+		if err != nil {
+			return nil, err
+		}
+
+		var result []*itemsvr.ItemInfo
+		for i := range items {
+			result = append(result, &itemsvr.ItemInfo{
+				ID:          items[i].ItemId,
+				Name:        items[i].Name,
+				Stock:       items[i].Stock,
+				Price:       items[i].Price,
+				Description: items[i].Description,
+			})
+		}
+		return result, nil
 	}
 
 	items, err := s.Dao.ListAllItems()
@@ -147,4 +179,63 @@ func (s *ItemSvrImpl) ListItems(ctx context.Context, uid string, role string) (r
 	}
 
 	return result, nil
+}
+
+func (s *ItemSvrImpl) GetItem(ctx context.Context, itemId string) (resp *itemsvr.ItemInfo, err error) {
+	if len(itemId) == 0 {
+		return nil, kerrors.NewBizStatusError(dto.InvalidItemID.Status, dto.InvalidItemID.Info)
+	}
+
+	item, err := s.Dao.GetItem(itemId)
+	if err != nil {
+		return nil, kerrors.NewBizStatusError(dto.ItemNotFound.Status, dto.ItemNotFound.Info)
+	}
+
+	result := &itemsvr.ItemInfo{
+		ID:          item.ItemId,
+		Name:        item.Name,
+		Stock:       item.Stock,
+		Price:       item.Price,
+		Description: item.Description,
+	}
+
+	flashStatus, cacheErr := s.Cache.GetFlashStatus(ctx, itemId)
+	if cacheErr == nil && flashStatus == 1 {
+		stock, cacheErr := s.Cache.GetItemStock(ctx, itemId)
+		if cacheErr == nil {
+			result.Stock = stock
+		}
+	}
+
+	return result, nil
+}
+
+func (s *ItemSvrImpl) PrepareOrder(ctx context.Context, userId string, itemId string) (resp float64, err error) {
+	if len(userId) == 0 {
+		return 0, kerrors.NewBizStatusError(dto.InvalidItemID.Status, dto.InvalidItemID.Info)
+	}
+	if len(itemId) == 0 {
+		return 0, kerrors.NewBizStatusError(dto.InvalidItemID.Status, dto.InvalidItemID.Info)
+	}
+
+	result, err := s.Cache.PrepareOrderAtomic(ctx, itemId, userId, 5*time.Minute)
+	if err != nil {
+		return 0, err
+	}
+
+	switch {
+	case result == -1:
+		return 0, kerrors.NewBizStatusError(dto.FlashNotStart.Status, dto.FlashNotStart.Info)
+	case result == -2:
+		return 0, kerrors.NewBizStatusError(dto.PurchaseLimitExceeded.Status, dto.PurchaseLimitExceeded.Info)
+	case result == -3:
+		return 0, kerrors.NewBizStatusError(dto.InsufficientStock.Status, dto.InsufficientStock.Info)
+	}
+
+	item, err := s.Dao.GetItem(itemId)
+	if err != nil {
+		return 0, kerrors.NewBizStatusError(dto.ItemNotFound.Status, dto.ItemNotFound.Info)
+	}
+
+	return item.Price, nil
 }

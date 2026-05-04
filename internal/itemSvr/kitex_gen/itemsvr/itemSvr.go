@@ -87,6 +87,10 @@ type ItemSvr interface {
 	StopFlashSale(ctx context.Context, itemId string) (err error)
 
 	ListItems(ctx context.Context, uid string, role string) (r []*ItemInfo, err error)
+
+	GetItem(ctx context.Context, itemId string) (r *ItemInfo, err error)
+
+	PrepareOrder(ctx context.Context, userId string, itemId string) (r float64, err error)
 }
 
 type ItemSvrAddItemArgs struct {
@@ -411,5 +415,153 @@ func (p *ItemSvrListItemsResult) String() string {
 }
 
 var fieldIDToName_ItemSvrListItemsResult = map[int16]string{
+	0: "success",
+}
+
+type ItemSvrGetItemArgs struct {
+	ItemId string `thrift:"itemId,1" frugal:"1,default,string" json:"itemId"`
+}
+
+func NewItemSvrGetItemArgs() *ItemSvrGetItemArgs {
+	return &ItemSvrGetItemArgs{}
+}
+
+func (p *ItemSvrGetItemArgs) InitDefault() {
+}
+
+func (p *ItemSvrGetItemArgs) GetItemId() (v string) {
+	return p.ItemId
+}
+
+func (p *ItemSvrGetItemArgs) SetItemId(val string) {
+	p.ItemId = val
+}
+
+func (p *ItemSvrGetItemArgs) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ItemSvrGetItemArgs(%+v)", *p)
+}
+
+var fieldIDToName_ItemSvrGetItemArgs = map[int16]string{
+	1: "itemId",
+}
+
+type ItemSvrGetItemResult struct {
+	Success *ItemInfo `thrift:"success,0,optional" frugal:"0,optional,ItemInfo" json:"success,omitempty"`
+}
+
+func NewItemSvrGetItemResult() *ItemSvrGetItemResult {
+	return &ItemSvrGetItemResult{}
+}
+
+func (p *ItemSvrGetItemResult) InitDefault() {
+}
+
+var ItemSvrGetItemResult_Success_DEFAULT *ItemInfo
+
+func (p *ItemSvrGetItemResult) GetSuccess() (v *ItemInfo) {
+	if !p.IsSetSuccess() {
+		return ItemSvrGetItemResult_Success_DEFAULT
+	}
+	return p.Success
+}
+
+func (p *ItemSvrGetItemResult) SetSuccess(x interface{}) {
+	p.Success = x.(*ItemInfo)
+}
+
+func (p *ItemSvrGetItemResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
+func (p *ItemSvrGetItemResult) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ItemSvrGetItemResult(%+v)", *p)
+}
+
+var fieldIDToName_ItemSvrGetItemResult = map[int16]string{
+	0: "success",
+}
+
+type ItemSvrPrepareOrderArgs struct {
+	UserId string `thrift:"userId,1" frugal:"1,default,string" json:"userId"`
+	ItemId string `thrift:"itemId,2" frugal:"2,default,string" json:"itemId"`
+}
+
+func NewItemSvrPrepareOrderArgs() *ItemSvrPrepareOrderArgs {
+	return &ItemSvrPrepareOrderArgs{}
+}
+
+func (p *ItemSvrPrepareOrderArgs) InitDefault() {
+}
+
+func (p *ItemSvrPrepareOrderArgs) GetUserId() (v string) {
+	return p.UserId
+}
+
+func (p *ItemSvrPrepareOrderArgs) GetItemId() (v string) {
+	return p.ItemId
+}
+
+func (p *ItemSvrPrepareOrderArgs) SetUserId(val string) {
+	p.UserId = val
+}
+
+func (p *ItemSvrPrepareOrderArgs) SetItemId(val string) {
+	p.ItemId = val
+}
+
+func (p *ItemSvrPrepareOrderArgs) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ItemSvrPrepareOrderArgs(%+v)", *p)
+}
+
+var fieldIDToName_ItemSvrPrepareOrderArgs = map[int16]string{
+	1: "userId",
+	2: "itemId",
+}
+
+type ItemSvrPrepareOrderResult struct {
+	Success *float64 `thrift:"success,0,optional" frugal:"0,optional,double" json:"success,omitempty"`
+}
+
+func NewItemSvrPrepareOrderResult() *ItemSvrPrepareOrderResult {
+	return &ItemSvrPrepareOrderResult{}
+}
+
+func (p *ItemSvrPrepareOrderResult) InitDefault() {
+}
+
+var ItemSvrPrepareOrderResult_Success_DEFAULT float64
+
+func (p *ItemSvrPrepareOrderResult) GetSuccess() (v float64) {
+	if !p.IsSetSuccess() {
+		return ItemSvrPrepareOrderResult_Success_DEFAULT
+	}
+	return *p.Success
+}
+
+func (p *ItemSvrPrepareOrderResult) SetSuccess(x interface{}) {
+	p.Success = x.(*float64)
+}
+
+func (p *ItemSvrPrepareOrderResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
+func (p *ItemSvrPrepareOrderResult) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ItemSvrPrepareOrderResult(%+v)", *p)
+}
+
+var fieldIDToName_ItemSvrPrepareOrderResult = map[int16]string{
 	0: "success",
 }

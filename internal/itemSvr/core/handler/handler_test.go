@@ -124,17 +124,32 @@ func TestStopFlashSale_InvalidID(t *testing.T) {
 	}
 }
 
-func TestListItems_PermissionDenied(t *testing.T) {
+func TestGetItem_InvalidID(t *testing.T) {
 	s := newTestItemSvrImpl()
-	_, err := s.ListItems(context.Background(), "user1", "SIMPLE_USER")
+	_, err := s.GetItem(context.Background(), "")
 	if err == nil {
-		t.Fatal("expected error for non-admin role")
+		t.Fatal("expected error for empty id")
 	}
 	bizErr, ok := kerrors.FromBizStatusError(err)
 	if !ok {
 		t.Fatalf("expected biz status error, got %v", err)
 	}
-	if bizErr.BizStatusCode() != dto.PermissionDenied.Status {
-		t.Errorf("expected status %d, got %d", dto.PermissionDenied.Status, bizErr.BizStatusCode())
+	if bizErr.BizStatusCode() != dto.InvalidItemID.Status {
+		t.Errorf("expected status %d, got %d", dto.InvalidItemID.Status, bizErr.BizStatusCode())
+	}
+}
+
+func TestPrepareOrder_InvalidItemID(t *testing.T) {
+	s := newTestItemSvrImpl()
+	_, err := s.PrepareOrder(context.Background(), "user1", "")
+	if err == nil {
+		t.Fatal("expected error for empty item id")
+	}
+	bizErr, ok := kerrors.FromBizStatusError(err)
+	if !ok {
+		t.Fatalf("expected biz status error, got %v", err)
+	}
+	if bizErr.BizStatusCode() != dto.InvalidItemID.Status {
+		t.Errorf("expected status %d, got %d", dto.InvalidItemID.Status, bizErr.BizStatusCode())
 	}
 }

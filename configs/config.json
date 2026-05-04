@@ -1,0 +1,24 @@
+{
+  "postgresql": {
+    "host": "localhost",
+    "port": 5432,
+    "user": "postgres",
+    "password": "postgres",
+    "defaultDB": "adminer",
+    "sslMode": "disable"
+  },
+  "redis": {
+    "masterName": "mymaster",
+    "sentinelAddrs": ["localhost:26379"],
+    "password": "root",
+    "sentinelPassword": "root"
+  },
+  "kafka": {
+    "brokers": ["localhost:9092"]
+  },
+  "gateway": {
+    "listenAddr": "0.0.0.0",
+    "listenPort": "8888",
+    "monitoringPort": "8889"
+  }
+}

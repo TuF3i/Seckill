@@ -73,3 +73,14 @@ func (r *Dao) ListAllItems() ([]models.Item, error) {
 
 	return items, nil
 }
+
+func (r *Dao) HasActiveFlashSale() (bool, error) {
+	var count int64
+
+	err := r.Pgdb.Model(&models.Item{}).Where("flash_status = 1").Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
+}

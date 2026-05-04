@@ -4,6 +4,7 @@ import (
 	"context"
 	"seckill/internal/gateway/dto"
 	"seckill/internal/gateway/dto/order"
+	"seckill/internal/gateway/pkg/lcontext"
 	"seckill/internal/gateway/pkg/lerror"
 
 	"github.com/cloudwego/hertz/pkg/app"
@@ -12,6 +13,13 @@ import (
 
 func (r *Handler) CreateOrderHandlerFunc() app.HandlerFunc {
 	return func(ctx context.Context, c *app.RequestContext) {
+		claims, err := lcontext.GetClaimsFromRequestContext(c)
+		if err != nil {
+			resp := lerror.GenErrorResponse(err)
+			c.JSON(consts.StatusOK, dto.GenFinalResponse(resp, nil))
+			return
+		}
+
 		var req order.CreateOrderReq
 		if err := c.BindAndValidate(&req); err != nil {
 			resp := dto.InternalError(err)
@@ -19,7 +27,14 @@ func (r *Handler) CreateOrderHandlerFunc() app.HandlerFunc {
 			return
 		}
 
-		orderId, err := r.OrderSvr.CreateOrder(ctx, req.UserId, req.ItemId, req.Price)
+		price, err := r.ItemSvr.PrepareOrder(ctx, claims.UID, req.ItemId)
+		if err != nil {
+			resp := lerror.GenErrorResponse(err)
+			c.JSON(consts.StatusOK, dto.GenFinalResponse(resp, nil))
+			return
+		}
+
+		orderId, err := r.OrderSvr.CreateOrder(ctx, claims.UID, req.ItemId, price)
 		if err != nil {
 			resp := lerror.GenErrorResponse(err)
 			c.JSON(consts.StatusOK, dto.GenFinalResponse(resp, nil))

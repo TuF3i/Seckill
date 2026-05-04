@@ -16,6 +16,8 @@ type Client interface {
 	StartFlashSale(ctx context.Context, itemId string, callOptions ...callopt.Option) (err error)
 	StopFlashSale(ctx context.Context, itemId string, callOptions ...callopt.Option) (err error)
 	ListItems(ctx context.Context, uid string, role string, callOptions ...callopt.Option) (r []*itemsvr.ItemInfo, err error)
+	GetItem(ctx context.Context, itemId string, callOptions ...callopt.Option) (r *itemsvr.ItemInfo, err error)
+	PrepareOrder(ctx context.Context, userId string, itemId string, callOptions ...callopt.Option) (r float64, err error)
 }
 
 func NewClient(destService string, opts ...client.Option) (Client, error) {
@@ -68,4 +70,14 @@ func (p *kItemSvrClient) StopFlashSale(ctx context.Context, itemId string, callO
 func (p *kItemSvrClient) ListItems(ctx context.Context, uid string, role string, callOptions ...callopt.Option) (r []*itemsvr.ItemInfo, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.ListItems(ctx, uid, role)
+}
+
+func (p *kItemSvrClient) GetItem(ctx context.Context, itemId string, callOptions ...callopt.Option) (r *itemsvr.ItemInfo, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.GetItem(ctx, itemId)
+}
+
+func (p *kItemSvrClient) PrepareOrder(ctx context.Context, userId string, itemId string, callOptions ...callopt.Option) (r float64, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.PrepareOrder(ctx, userId, itemId)
 }

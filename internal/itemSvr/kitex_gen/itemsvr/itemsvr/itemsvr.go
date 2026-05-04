@@ -49,6 +49,20 @@ var serviceMethods = map[string]kitex.MethodInfo{
 		false,
 		kitex.WithStreamingMode(kitex.StreamingNone),
 	),
+	"GetItem": kitex.NewMethodInfo(
+		getItemHandler,
+		newItemSvrGetItemArgs,
+		newItemSvrGetItemResult,
+		false,
+		kitex.WithStreamingMode(kitex.StreamingNone),
+	),
+	"PrepareOrder": kitex.NewMethodInfo(
+		prepareOrderHandler,
+		newItemSvrPrepareOrderArgs,
+		newItemSvrPrepareOrderResult,
+		false,
+		kitex.WithStreamingMode(kitex.StreamingNone),
+	),
 }
 
 var (
@@ -206,6 +220,44 @@ func newItemSvrListItemsResult() interface{} {
 	return itemsvr.NewItemSvrListItemsResult()
 }
 
+func getItemHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*itemsvr.ItemSvrGetItemArgs)
+	realResult := result.(*itemsvr.ItemSvrGetItemResult)
+	success, err := handler.(itemsvr.ItemSvr).GetItem(ctx, realArg.ItemId)
+	if err != nil {
+		return err
+	}
+	realResult.Success = success
+	return nil
+}
+
+func newItemSvrGetItemArgs() interface{} {
+	return itemsvr.NewItemSvrGetItemArgs()
+}
+
+func newItemSvrGetItemResult() interface{} {
+	return itemsvr.NewItemSvrGetItemResult()
+}
+
+func prepareOrderHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*itemsvr.ItemSvrPrepareOrderArgs)
+	realResult := result.(*itemsvr.ItemSvrPrepareOrderResult)
+	success, err := handler.(itemsvr.ItemSvr).PrepareOrder(ctx, realArg.UserId, realArg.ItemId)
+	if err != nil {
+		return err
+	}
+	realResult.Success = &success
+	return nil
+}
+
+func newItemSvrPrepareOrderArgs() interface{} {
+	return itemsvr.NewItemSvrPrepareOrderArgs()
+}
+
+func newItemSvrPrepareOrderResult() interface{} {
+	return itemsvr.NewItemSvrPrepareOrderResult()
+}
+
 type kClient struct {
 	c client.Client
 }
@@ -265,6 +317,27 @@ func (p *kClient) ListItems(ctx context.Context, uid string, role string) (r []*
 	_args.Role = role
 	var _result itemsvr.ItemSvrListItemsResult
 	if err = p.c.Call(ctx, "ListItems", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) GetItem(ctx context.Context, itemId string) (r *itemsvr.ItemInfo, err error) {
+	var _args itemsvr.ItemSvrGetItemArgs
+	_args.ItemId = itemId
+	var _result itemsvr.ItemSvrGetItemResult
+	if err = p.c.Call(ctx, "GetItem", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) PrepareOrder(ctx context.Context, userId string, itemId string) (r float64, err error) {
+	var _args itemsvr.ItemSvrPrepareOrderArgs
+	_args.UserId = userId
+	_args.ItemId = itemId
+	var _result itemsvr.ItemSvrPrepareOrderResult
+	if err = p.c.Call(ctx, "PrepareOrder", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil

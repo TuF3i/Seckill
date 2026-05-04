@@ -14,4 +14,6 @@ service ItemSvr {
     void StartFlashSale(1: string itemId)
     void StopFlashSale(1: string itemId)
     list<ItemInfo> ListItems(1: string uid, 2: string role)
+    ItemInfo GetItem(1: string itemId)
+    double PrepareOrder(1: string userId, 2: string itemId)
 }

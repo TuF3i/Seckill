@@ -1,9 +1,7 @@
 package order
 
 type CreateOrderReq struct {
-	UserId string  `json:"userId"`
-	ItemId string  `json:"itemId"`
-	Price  float64 `json:"price"`
+	ItemId string `json:"itemId"`
 }
 
 type CreateOrderResp struct {
@@ -15,10 +13,10 @@ type QueryOrdersReq struct {
 }
 
 type OrderInfoResp struct {
-	OrderId    string `json:"orderId"`
-	UserId     string `json:"userId"`
-	ItemId     string `json:"itemId"`
+	OrderId    string  `json:"orderId"`
+	UserId     string  `json:"userId"`
+	ItemId     string  `json:"itemId"`
 	Price      float64 `json:"price"`
-	Status     int32  `json:"status"`
-	CreateTime string `json:"createTime"`
+	Status     int32   `json:"status"`
+	CreateTime string  `json:"createTime"`
 }
