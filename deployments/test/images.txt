@@ -1,0 +1,12 @@
+docker images
+REPOSITORY                                                                           TAG                   IMAGE ID       CREATED         SIZE
+registry.tuf3i.click/qingpan/rnacos                                                  stable                e400c7f403c2   7 days ago      122MB
+registry.tuf3i.click/redpandadata/redpanda                                           latest                2c59133cbabe   12 days ago     409MB
+redis                                                                                7.2-alpine            b63cfcebcc37   2 weeks ago     40.9MB
+registry.tuf3i.click/library/redis                                                   7.2-alpine            b63cfcebcc37   2 weeks ago     40.9MB
+registry.tuf3i.click/library/postgres                                                latest                413d57cb67bb   3 weeks ago     456MB
+bitnami/postgresql-repmgr                                                            17                    9d3e8a930cec   8 months ago    347MB
+swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/bitnamilegacy/postgresql-repmgr   17.6.0-debian-12-r2   9d3e8a930cec   8 months ago    347MB
+bitnami/pgpool                                                                       4.6                   f7cd6ccdf2bb   11 months ago   196MB
+swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/bitnami/pgpool                    4.6.2-debian-12-r1    f7cd6ccdf2bb   11 months ago   196MB
+registry.tuf3i.click/pgpool/pgpool                                                   latest                ca89cfe76f08   3 years ago     703MB

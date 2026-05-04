@@ -1,0 +1,113 @@
+networks:
+  redrock:
+    external: true
+
+services:
+  # Redis 主节点
+  redis-master:
+    image: redis:7.2-alpine
+    container_name: redis-master
+    restart: unless-stopped
+    command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      - ./config/master/redis.conf:/usr/local/etc/redis/redis.conf
+      - redis-master-data:/data
+    networks:
+      - redrock
+    ports:
+      - "6379:6379"
+
+  # Redis 从节点 1
+  redis-slave1:
+    image: redis:7.2-alpine
+    container_name: redis-slave1
+    restart: unless-stopped
+    command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      - ./config/slave1/redis.conf:/usr/local/etc/redis/redis.conf
+      - redis-slave1-data:/data
+    networks:
+      - redrock
+    ports:
+      - "6380:6379"
+    depends_on:
+      - redis-master
+
+  # Redis 从节点 2
+  redis-slave2:
+    image: redis:7.2-alpine
+    container_name: redis-slave2
+    restart: unless-stopped
+    command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      - ./config/slave2/redis.conf:/usr/local/etc/redis/redis.conf
+      - redis-slave2-data:/data
+    networks:
+      - redrock
+    ports:
+      - "6381:6379"
+    depends_on:
+      - redis-master
+
+  # Sentinel 1
+  sentinel1:
+    image: redis:7.2-alpine
+    container_name: sentinel1
+    restart: unless-stopped
+    command: redis-sentinel /usr/local/etc/redis/sentinel.conf
+    volumes:
+      - ./config/sentinel1/sentinel.conf:/usr/local/etc/redis/sentinel.conf
+      - sentinel1-data:/data
+    networks:
+      - redrock
+    ports:
+      - "26379:26379"
+    depends_on:
+      - redis-master
+      - redis-slave1
+      - redis-slave2
+
+  # Sentinel 2
+  sentinel2:
+    image: redis:7.2-alpine
+    container_name: sentinel2
+    restart: unless-stopped
+    command: redis-sentinel /usr/local/etc/redis/sentinel.conf
+    volumes:
+      - ./config/sentinel2/sentinel.conf:/usr/local/etc/redis/sentinel.conf
+      - sentinel2-data:/data
+    networks:
+      - redrock
+    ports:
+      - "26380:26379"
+    depends_on:
+      - redis-master
+      - redis-slave1
+      - redis-slave2
+
+  # Sentinel 3
+  sentinel3:
+    image: redis:7.2-alpine
+    container_name: sentinel3
+    restart: unless-stopped
+    command: redis-sentinel /usr/local/etc/redis/sentinel.conf
+    volumes:
+      - ./config/sentinel3/sentinel.conf:/usr/local/etc/redis/sentinel.conf
+      - sentinel3-data:/data
+    networks:
+      - redrock
+    ports:
+      - "26381:26379"
+    depends_on:
+      - redis-master
+      - redis-slave1
+      - redis-slave2
+
+# 持久化数据卷
+volumes:
+  redis-master-data:
+  redis-slave1-data:
+  redis-slave2-data:
+  sentinel1-data:
+  sentinel2-data:
+  sentinel3-data:
