@@ -13,7 +13,7 @@ type User struct {
 	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at;type:timestamp;index;comment:删除时间（软删除）"`
 
 	Uid      string `json:"uid" gorm:"column:uid;type:varchar(64);not null;uniqueIndex;comment:用户唯一ID"`
-	Role     string `json:"role" gorm:"column:role;type:varchar(10);comment:用户角色"`
+	Role     string `json:"role" gorm:"column:role;type:varchar(20);comment:用户角色"`
 	Email    string `json:"email" gorm:"column:email;type:varchar(64);comment:用户邮箱"`
 	Password string `json:"password" gorm:"column:password;type:varchar(256);comment:用户密码"`
 }
