@@ -22,6 +22,7 @@ import (
 	"github.com/kitex-contrib/registry-nacos/resolver"
 
 	rpcclient "github.com/cloudwego/kitex/client"
+	"github.com/cloudwego/kitex/pkg/transmeta"
 
 	"gitee.com/liumou_site/logger"
 	"github.com/bwmarrin/snowflake"
@@ -81,28 +82,44 @@ func onCreate(env *configs.BasicEnv) {
 	}
 
 	// 初始化userSvr
-	userClient, err := userSvr.NewClient("UserSvr", rpcclient.WithResolver(resolver.NewNacosResolver(nacosClient.NamingClient)))
+	userClient, err := userSvr.NewClient(
+		"UserSvr",
+		rpcclient.WithResolver(resolver.NewNacosResolver(nacosClient.NamingClient)),
+		rpcclient.WithMetaHandler(transmeta.ServerTTHeaderHandler),
+	)
 	if err != nil {
 		logger.Emer("Setup <userSvr> Failed: %v", err.Error())
 		os.Exit(1)
 	}
 
 	// 初始化itemSvr
-	itemClient, err := itemSvr.NewClient("ItemSvr", rpcclient.WithResolver(resolver.NewNacosResolver(nacosClient.NamingClient)))
+	itemClient, err := itemSvr.NewClient(
+		"ItemSvr",
+		rpcclient.WithResolver(resolver.NewNacosResolver(nacosClient.NamingClient)),
+		rpcclient.WithMetaHandler(transmeta.ServerTTHeaderHandler),
+	)
 	if err != nil {
 		logger.Emer("Setup <itemSvr> Failed: %v", err.Error())
 		os.Exit(1)
 	}
 
 	// 初始化orderSvr
-	orderClient, err := orderSvr.NewClient("OrderSvr", rpcclient.WithResolver(resolver.NewNacosResolver(nacosClient.NamingClient)))
+	orderClient, err := orderSvr.NewClient(
+		"OrderSvr",
+		rpcclient.WithResolver(resolver.NewNacosResolver(nacosClient.NamingClient)),
+		rpcclient.WithMetaHandler(transmeta.ServerTTHeaderHandler),
+	)
 	if err != nil {
 		logger.Emer("Setup <orderSvr> Failed: %v", err.Error())
 		os.Exit(1)
 	}
 
 	// 初始化paymentSvr
-	paymentClient, err := paymentSvr.NewClient("PaymentSvr", rpcclient.WithResolver(resolver.NewNacosResolver(nacosClient.NamingClient)))
+	paymentClient, err := paymentSvr.NewClient(
+		"PaymentSvr",
+		rpcclient.WithResolver(resolver.NewNacosResolver(nacosClient.NamingClient)),
+		rpcclient.WithMetaHandler(transmeta.ServerTTHeaderHandler),
+	)
 	if err != nil {
 		logger.Emer("Setup <paymentSvr> Failed: %v", err.Error())
 		os.Exit(1)

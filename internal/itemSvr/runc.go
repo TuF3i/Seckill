@@ -19,6 +19,7 @@ import (
 
 	"gitee.com/liumou_site/logger"
 	"github.com/cloudwego/kitex/pkg/rpcinfo"
+	"github.com/cloudwego/kitex/pkg/transmeta"
 	"github.com/cloudwego/kitex/server"
 	"github.com/kitex-contrib/registry-nacos/registry"
 )
@@ -115,6 +116,7 @@ func onCreate(env *configs.BasicEnv) {
 
 	svr := itemSvr.NewServer(
 		itemSvrObj,
+		server.WithMetaHandler(transmeta.ServerTTHeaderHandler),
 		server.WithRegistry(registry.NewNacosRegistry(nacosClient.NamingClient)),
 		server.WithServerBasicInfo(&rpcinfo.EndpointBasicInfo{ServiceName: "ItemSvr"}),
 	)
