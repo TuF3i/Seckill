@@ -17,9 +17,10 @@ import (
 	"seckill/pkg/config"
 	"seckill/pkg/env"
 
+	"gitee.com/liumou_site/logger"
+	"github.com/cloudwego/kitex/pkg/rpcinfo"
 	"github.com/cloudwego/kitex/server"
 	"github.com/kitex-contrib/registry-nacos/registry"
-	"gitee.com/liumou_site/logger"
 )
 
 const RedisDBOrder = 2
@@ -106,7 +107,11 @@ func onCreate(env *configs.BasicEnv) {
 		Cache: c,
 	})
 
-	svr := paymentSvr.NewServer(paymentSvrObj, server.WithRegistry(registry.NewNacosRegistry(nacosClient.NamingClient)))
+	svr := paymentSvr.NewServer(
+		paymentSvrObj,
+		server.WithRegistry(registry.NewNacosRegistry(nacosClient.NamingClient)),
+		server.WithServerBasicInfo(&rpcinfo.EndpointBasicInfo{ServiceName: "PaymentSvr"}),
+	)
 
 	go func() {
 		if err := svr.Run(); err != nil {
