@@ -234,14 +234,7 @@ services:
     networks:
       - seckill
     healthcheck:
-      test:
-        [
-          "CMD",
-          "wget",
-          "-q",
-          "--spider",
-          "http://localhost:8848/nacos/v1/cs/configs?dataId=health&group=health",
-        ]
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8848/"]
       interval: 10s
       timeout: 5s
       retries: 10
