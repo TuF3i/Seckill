@@ -233,11 +233,6 @@ services:
     restart: always
     networks:
       - seckill
-    healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8848/"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
 
   # ═══════════════════════════════════════════════════════════
   # Seckill Init（一次性初始化）
@@ -252,7 +247,7 @@ services:
       pgpool:
         condition: service_healthy
       nacos:
-        condition: service_healthy
+        condition: service_started
     environment:
       NACOS_ADDR: nacos
       NACOS_PORT: "8848"
