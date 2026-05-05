@@ -9,7 +9,7 @@ import (
 	"seckill/configs"
 	n "seckill/infrastructures/nacos"
 
-	"github.com/nacos-group/nacos-sdk-go/v2/vo"
+	"github.com/nacos-group/nacos-sdk-go/vo"
 )
 
 type Loader struct {

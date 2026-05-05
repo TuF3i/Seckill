@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	gateway "seckill/internal/gateway/core/app"
+	gateway "seckill/internal/gateway"
 	itemSvr "seckill/internal/itemSvr/core/app"
 	orderConsumer "seckill/internal/orderConsumer/core/app"
 	orderSvr "seckill/internal/orderSvr/core/app"

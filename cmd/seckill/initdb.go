@@ -14,6 +14,8 @@ var (
 	nacosPort     uint64
 	nacosUser     string
 	nacosPassword string
+	configID      string
+	configGroup   string
 )
 
 var initDBCmd = &cobra.Command{
@@ -33,7 +35,7 @@ var initDBCmd = &cobra.Command{
 			panic(fmt.Errorf("initdb: create nacos client: %w", err))
 		}
 
-		loader, err := config.NewLoader(nacosClient, "seckill", "REDROCK")
+		loader, err := config.NewLoader(nacosClient, configID, configGroup)
 		if err != nil {
 			panic(fmt.Errorf("initdb: load config: %w", err))
 		}
@@ -52,6 +54,8 @@ func init() {
 
 	initDBCmd.Flags().StringVar(&nacosHost, "nacos-host", "localhost", "Nacos server host")
 	initDBCmd.Flags().Uint64Var(&nacosPort, "nacos-port", 8848, "Nacos server port")
-	initDBCmd.Flags().StringVar(&nacosUser, "nacos-user", "nacos", "Nacos username")
-	initDBCmd.Flags().StringVar(&nacosPassword, "nacos-password", "nacos", "Nacos password")
+	initDBCmd.Flags().StringVar(&nacosUser, "nacos-user", "admin", "Nacos username")
+	initDBCmd.Flags().StringVar(&nacosPassword, "nacos-password", "admin", "Nacos password")
+	initDBCmd.Flags().StringVar(&configID, "config-id", "seckill", "Config ID")
+	initDBCmd.Flags().StringVar(&configGroup, "config-group", "REDROCK", "Config Group")
 }

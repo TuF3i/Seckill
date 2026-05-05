@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	gateway "seckill/internal/gateway/core/app"
+	gateway "seckill/internal/gateway"
 
 	"github.com/spf13/cobra"
 )

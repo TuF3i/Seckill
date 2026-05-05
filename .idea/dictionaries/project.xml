@@ -2,9 +2,11 @@
   <dictionary name="project">
     <words>
       <w>addrs</w>
+      <w>initdb</w>
       <w>kenum</w>
       <w>nacos</w>
       <w>pgdb</w>
+      <w>postgre</w>
       <w>traceid</w>
     </words>
   </dictionary>

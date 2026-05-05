@@ -3,11 +3,11 @@ package nacos
 import (
 	"fmt"
 
-	"github.com/nacos-group/nacos-sdk-go/v2/clients"
-	"github.com/nacos-group/nacos-sdk-go/v2/clients/config_client"
-	"github.com/nacos-group/nacos-sdk-go/v2/clients/naming_client"
-	"github.com/nacos-group/nacos-sdk-go/v2/common/constant"
-	"github.com/nacos-group/nacos-sdk-go/v2/vo"
+	"github.com/nacos-group/nacos-sdk-go/clients"
+	"github.com/nacos-group/nacos-sdk-go/clients/config_client"
+	"github.com/nacos-group/nacos-sdk-go/clients/naming_client"
+	"github.com/nacos-group/nacos-sdk-go/common/constant"
+	"github.com/nacos-group/nacos-sdk-go/vo"
 )
 
 type Option func(info *BasicInfo)
@@ -66,7 +66,7 @@ func NewNacosClient(opts ...Option) (*Client, error) {
 	basicInfo := &BasicInfo{
 		Host:        "localhost",
 		Port:        8848,
-		NamespaceID: "",
+		NamespaceID: "public",
 		UserName:    "nacos",
 		Password:    "nacos",
 		LogLevel:    "info",

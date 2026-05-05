@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"seckill/internal/gateway/pkg/lconfig"
+	"seckill/configs"
 	"seckill/internal/gateway/router"
 
 	"github.com/cloudwego/hertz/pkg/app/server"
@@ -9,7 +9,7 @@ import (
 
 type RouterReliance struct {
 	Router *router.Router
-	Config *lconfig.Config
+	Config *configs.Config
 }
 
 type Engine struct {
@@ -18,9 +18,7 @@ type Engine struct {
 }
 
 func NewEngine(m *RouterReliance) *Engine {
-	return &Engine{RouterReliance: m}
-}
-
-func (r *Engine) Hertz() *server.Hertz {
-	return r.h
+	e := &Engine{RouterReliance: m}
+	e.Router.InitRouter(e.h)
+	return e
 }
