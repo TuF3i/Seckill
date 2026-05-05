@@ -9,12 +9,15 @@ import (
 	prometheus "github.com/hertz-contrib/monitor-prometheus"
 )
 
-func (r *Engine) RunApiEngine() {
+func (r *Engine) createApiEngine() {
 	// 构造Url
 	url := fmt.Sprintf("%v:%v", r.Config.Gateway.ListenAddr, r.Config.Gateway.ListenPort)
 	monitorUrl := fmt.Sprintf("%v:%v", r.Config.Gateway.ListenAddr, r.Config.Gateway.MonitoringPort)
 	// 创建服务核心
 	r.h = server.Default(server.WithHostPorts(url), server.WithTracer(prometheus.NewServerTracer(monitorUrl, "/hertz")))
+}
+
+func (r *Engine) RunApiEngine() {
 	// 启动服务核心
 	go func() { r.h.Spin() }()
 }

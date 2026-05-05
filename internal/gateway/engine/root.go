@@ -19,6 +19,7 @@ type Engine struct {
 
 func NewEngine(m *RouterReliance) *Engine {
 	e := &Engine{RouterReliance: m}
+	e.createApiEngine()
 	e.Router.InitRouter(e.h)
 	return e
 }
