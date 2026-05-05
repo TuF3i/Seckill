@@ -21,7 +21,6 @@ WORKDIR /app
 
 COPY --from=builder /build/seckill .
 COPY configs/config.json .
+COPY scripts/docker-init.sh /docker-init.sh
 
 EXPOSE 8888
-
-ENTRYPOINT ["./seckill"]

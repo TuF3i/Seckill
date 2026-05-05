@@ -256,44 +256,12 @@ services:
       CONFIG_ID: ${CONFIG_ID}
       CONFIG_GROUP: ${CONFIG_GROUP}
       CONTAINER_NAME: seckill-init
+      POSTGRESQL_USERNAME: ${POSTGRESQL_USERNAME}
+      POSTGRESQL_PASSWORD: ${POSTGRESQL_PASSWORD}
+      POSTGRESQL_DATABASE: ${POSTGRESQL_DATABASE}
     networks:
       - seckill
-    command:
-      - /bin/sh
-      - -c
-      - |
-        echo "Waiting for Nacos..."
-        until wget -q --spider http://nacos:8848/nacos/ 2>/dev/null; do sleep 2; done
-        echo "Nacos ready. Creating config..."
-
-        curl -s -X POST http://nacos:8848/nacos/v1/cs/configs \
-          -d "dataId=${CONFIG_ID}&group=${CONFIG_GROUP}&content={\
-            \"postgresql\":{\
-              \"host\":\"pgpool\",\
-              \"port\":5432,\
-              \"user\":\"${POSTGRESQL_USERNAME}\",\
-              \"password\":\"${POSTGRESQL_PASSWORD}\",\
-              \"defaultDB\":\"${POSTGRESQL_DATABASE}\",\
-              \"sslMode\":\"disable\"\
-            },\
-            \"redis\":{\
-              \"masterName\":\"cluster-master\",\
-              \"sentinelAddrs\":[\"sentinel1:26379\",\"sentinel2:26379\",\"sentinel3:26379\"],\
-              \"password\":\"root\",\
-              \"sentinelPassword\":\"root\"\
-            },\
-            \"kafka\":{\
-              \"brokers\":[\"redpanda:19092\"]\
-            },\
-            \"gateway\":{\
-              \"listenAddr\":\"0.0.0.0\",\
-              \"listenPort\":\"8888\",\
-              \"monitoringPort\":\"8889\"\
-            }\
-          }&type=json"
-
-        echo "Config created. Running initdb..."
-        exec ./seckill initdb
+    command: ["/bin/sh", "/docker-init.sh"]
 
   # ═══════════════════════════════════════════════════════════
   # Seckill UserSvr（用户服务）
