@@ -1,155 +1,139 @@
-package main
+package orderConsumer
 
 import (
 	"context"
-	"encoding/json"
-	"log"
-	"seckill/internal/orderConsumer/core/cache"
-	"seckill/internal/orderConsumer/core/dao"
-	"seckill/internal/orderConsumer/core/models"
-	kafka2 "seckill/infrastructures/kafka"
+	"os"
+	"os/signal"
+	"seckill/internal/orderConsumer/core/handler"
+	"strconv"
+	"sync"
+	"syscall"
+
+	"seckill/configs"
+	"seckill/infrastructures/kafka"
+	"seckill/infrastructures/nacos"
 	"seckill/infrastructures/postgres"
 	"seckill/infrastructures/redis"
-	"time"
-)
+	"seckill/internal/orderConsumer/core/cache"
+	"seckill/internal/orderConsumer/core/dao"
+	"seckill/pkg/config"
+	"seckill/pkg/env"
 
-type OrderMessage struct {
-	OrderId string  `json:"orderId"`
-	UserId  string  `json:"userId"`
-	ItemId  string  `json:"itemId"`
-	Price   float64 `json:"price"`
-}
-
-var (
-	d    *dao.Dao
-	c    *cache.Cache
-	done chan struct{}
+	"gitee.com/liumou_site/logger"
 )
 
 const (
-	RedisDBOrder     = 2
-	OrderTimeout     = 10 * time.Minute
-	TimeoutCheckTick = 1 * time.Minute
+	RedisDBOrder = 2
 )
 
-func OnCreate() {
-	pgClient, err := postgres.NewPostgresClient()
+var (
+	l          *logger.LocalLogger
+	handlerObj *handler.Handler
+)
+
+func RunOrderConsumer() {
+	l = logger.NewLogger(1)
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	basicEnv := env.GetEnv()
+	onCreate(basicEnv)
+
+	<-quit
+
+	onDestory()
+}
+
+func onCreate(env *configs.BasicEnv) {
+	l.Modular = "OrderConsumer-OnCreate"
+
+	nacosPort, err := strconv.ParseUint(env.NacosPort, 10, 64)
 	if err != nil {
-		panic(err)
+		logger.Emer("Convert Port Failed: %v", err.Error())
 	}
 
-	redisClient, err := redis.NewRedisSentinelClient(redis.WithDB(RedisDBOrder))
+	nacosClient, err := nacos.NewNacosClient(
+		nacos.WithHost(env.NacosAddr),
+		nacos.WithPort(nacosPort),
+		nacos.WithUserName(env.NacosUser),
+		nacos.WithPassword(env.NacosPassword),
+		nacos.WithNamespaceID("public"),
+	)
 	if err != nil {
-		panic(err)
+		logger.Emer("Setup <nacosClient> Failed: %v", err.Error())
 	}
 
-	d = dao.NewDao(&dao.DaoReliance{
+	loader, err := config.NewLoader(nacosClient, env.ConfigID, env.ConfigGroup)
+	if err != nil {
+		logger.Emer("Setup <ConfigLoader> Failed: %v", err.Error())
+	}
+
+	cfg := loader.GetConfig()
+
+	portStr := strconv.Itoa(cfg.PostgreSQL.Port)
+	pgClient, err := postgres.NewPostgresClient(
+		postgres.WithHost(cfg.PostgreSQL.Host),
+		postgres.WithPort(portStr),
+		postgres.WithUser(cfg.PostgreSQL.User),
+		postgres.WithPassword(cfg.PostgreSQL.Password),
+		postgres.WithDefaultDB(cfg.PostgreSQL.DefaultDB),
+		postgres.WithSSlMode(cfg.PostgreSQL.SSLMode),
+	)
+	if err != nil {
+		logger.Emer("Setup <Postgres> Failed: %v", err.Error())
+	}
+
+	redisClient, err := redis.NewRedisSentinelClient(
+		redis.WithMasterName(cfg.Redis.MasterName),
+		redis.WithSentinelAddrs(cfg.Redis.SentinelAddrs),
+		redis.WithPassword(cfg.Redis.Password),
+		redis.WithSentinelPassword(cfg.Redis.SentinelPassword),
+		redis.WithDB(RedisDBOrder),
+	)
+	if err != nil {
+		logger.Emer("Setup <Redis> Failed: %v", err.Error())
+	}
+
+	d := dao.NewDao(&dao.DaoReliance{
 		Pgdb: pgClient,
 	})
 
-	c = cache.NewCache(&cache.CacheReliance{
+	c := cache.NewCache(&cache.CacheReliance{
 		Rdb: redisClient,
 	})
 
-	done = make(chan struct{})
-}
-
-func OnDestory() {
-	close(done)
-	d = nil
-	c = nil
-}
-
-func main() {
-	OnCreate()
-
-	go timeoutChecker()
-
-	consumer := kafka2.NewKafkaConsumerGroup(
-		kafka2.WithTopic("order_topic"),
-		kafka2.WithGroupID("order-consumer-group"),
-		kafka2.WithBrokers([]string{"localhost:9092"}),
+	consumer := kafka.NewKafkaConsumerGroup(
+		kafka.WithTopic("order_topic"),
+		kafka.WithGroupID("order-consumer-group"),
+		kafka.WithBrokers(cfg.Kafka.Brokers),
 	)
 
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
 
-	log.Println("OrderConsumer started, waiting for messages...")
+	handlerObj = &handler.Handler{&handler.HandlerReliance{
+		D:        d,
+		C:        c,
+		L:        logger.NewLogger(1),
+		Wg:       &sync.WaitGroup{},
+		Ctx:      ctx,
+		Cancel:   cancel,
+		Done:     make(chan struct{}),
+		Quit:     make(chan struct{}),
+		Consumer: consumer,
+	}}
 
-	for {
-		msg, err := consumer.ReadMessage(ctx)
-		if err != nil {
-			log.Printf("Error reading message: %v", err)
-			continue
-		}
+	handlerObj.RunTimeoutChecker()
+	handlerObj.RunOrderConsumer()
 
-		var orderMsg OrderMessage
-		err = json.Unmarshal(msg.Value, &orderMsg)
-		if err != nil {
-			log.Printf("Error unmarshalling message: %v", err)
-			continue
-		}
+	logger.Info("OrderConsumer started, waiting for messages...")
 
-		order := &models.Order{
-			OrderId: orderMsg.OrderId,
-			UserId:  orderMsg.UserId,
-			ItemId:  orderMsg.ItemId,
-			Price:   orderMsg.Price,
-			Status:  1,
-		}
-
-		err = d.SaveOrder(order)
-		if err != nil {
-			log.Printf("Error saving order %s: %v", orderMsg.OrderId, err)
-			continue
-		}
-
-		err = c.SetOrderStatus(ctx, orderMsg.OrderId, 1)
-		if err != nil {
-			log.Printf("Error setting order status in cache for %s: %v", orderMsg.OrderId, err)
-			continue
-		}
-
-		log.Printf("Order %s saved successfully", orderMsg.OrderId)
-	}
 }
 
-func timeoutChecker() {
-	ticker := time.NewTicker(TimeoutCheckTick)
-	defer ticker.Stop()
+func onDestory() {
+	l.Modular = "OrderConsumer-OnDestory"
+	handlerObj.StopOrderConsumer()
+	handlerObj.StopTimeoutChecker()
 
-	for {
-		select {
-		case <-done:
-			return
-		case <-ticker.C:
-			checkTimeout()
-		}
-	}
-}
-
-func checkTimeout() {
-	orders, err := d.GetUnpaidOrders()
-	if err != nil {
-		log.Printf("Error fetching unpaid orders: %v", err)
-		return
-	}
-
-	now := time.Now()
-	for _, order := range orders {
-		if now.Sub(order.CreatedAt) > OrderTimeout {
-			err = d.UpdateOrderStatus(order.OrderId, 3)
-			if err != nil {
-				log.Printf("Error cancelling order %s: %v", order.OrderId, err)
-				continue
-			}
-
-			err = c.SetOrderStatus(context.Background(), order.OrderId, 3)
-			if err != nil {
-				log.Printf("Error updating cache for cancelled order %s: %v", order.OrderId, err)
-				continue
-			}
-
-			log.Printf("Order %s auto-cancelled due to timeout", order.OrderId)
-		}
-	}
+	handlerObj.WaitUntilDone()
 }

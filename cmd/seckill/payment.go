@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	paymentSvr "seckill/internal/paymentSvr/core/app"
+	"seckill/internal/paymentSvr"
 
 	"github.com/spf13/cobra"
 )
@@ -12,8 +12,6 @@ var paymentCmd = &cobra.Command{
 	Short: "Start PaymentSvr service",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Starting PaymentSvr...")
-		paymentSvr.OnCreate()
-		defer paymentSvr.OnDestory()
-		paymentSvr.RunServer()
+		paymentSvr.RunPaymentSvr()
 	},
 }

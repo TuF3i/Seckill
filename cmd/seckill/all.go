@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
-	gateway "seckill/internal/gateway"
-	itemSvr "seckill/internal/itemSvr/core/app"
-	orderConsumer "seckill/internal/orderConsumer/core/app"
-	orderSvr "seckill/internal/orderSvr/core/app"
-	paymentSvr "seckill/internal/paymentSvr/core/app"
-	userSvr "seckill/internal/userSvr/core/app"
+	"seckill/internal/gateway"
+	"seckill/internal/itemSvr"
+	"seckill/internal/orderConsumer"
+	"seckill/internal/orderSvr"
+	"seckill/internal/paymentSvr"
+	"seckill/internal/userSvr"
 
 	"github.com/spf13/cobra"
 )
@@ -18,38 +18,12 @@ var allCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Starting all microservices...")
 
-		go func() {
-			userSvr.OnCreate()
-			defer userSvr.OnDestory()
-			userSvr.RunServer()
-		}()
+		go itemSvr.RunItemSvr()
+		go orderSvr.RunOrderSvr()
+		go orderConsumer.RunOrderConsumer()
+		go paymentSvr.RunPaymentSvr()
+		go userSvr.RunUserSvr()
 
-		go func() {
-			itemSvr.OnCreate()
-			defer itemSvr.OnDestory()
-			itemSvr.RunServer()
-		}()
-
-		go func() {
-			orderSvr.OnCreate()
-			defer orderSvr.OnDestory()
-			orderSvr.RunServer()
-		}()
-
-		go func() {
-			orderConsumer.OnCreate()
-			defer orderConsumer.OnDestory()
-			orderConsumer.RunServer()
-		}()
-
-		go func() {
-			paymentSvr.OnCreate()
-			defer paymentSvr.OnDestory()
-			paymentSvr.RunServer()
-		}()
-
-		gateway.OnCreate()
-		defer gateway.OnDestory()
-		gateway.RunServer()
+		gateway.RunGateway()
 	},
 }

@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	orderSvr "seckill/internal/orderSvr/core/app"
+	"seckill/internal/orderSvr"
 
 	"github.com/spf13/cobra"
 )
@@ -12,8 +12,6 @@ var orderCmd = &cobra.Command{
 	Short: "Start OrderSvr service",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Starting OrderSvr...")
-		orderSvr.OnCreate()
-		defer orderSvr.OnDestory()
-		orderSvr.RunServer()
+		orderSvr.RunOrderSvr()
 	},
 }
