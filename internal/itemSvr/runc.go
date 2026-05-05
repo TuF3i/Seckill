@@ -50,6 +50,7 @@ func onCreate(env *configs.BasicEnv) {
 	nacosPort, err := strconv.ParseUint(env.NacosPort, 10, 64)
 	if err != nil {
 		logger.Emer("Convert Port Failed: %v", err.Error())
+		os.Exit(1)
 	}
 
 	nacosClient, err := nacos.NewNacosClient(
@@ -61,11 +62,13 @@ func onCreate(env *configs.BasicEnv) {
 	)
 	if err != nil {
 		logger.Emer("Setup <nacosClient> Failed: %v", err.Error())
+		os.Exit(1)
 	}
 
 	loader, err := config.NewLoader(nacosClient, env.ConfigID, env.ConfigGroup)
 	if err != nil {
 		logger.Emer("Setup <ConfigLoader> Failed: %v", err.Error())
+		os.Exit(1)
 	}
 
 	cfg := loader.GetConfig()
@@ -81,6 +84,7 @@ func onCreate(env *configs.BasicEnv) {
 	)
 	if err != nil {
 		logger.Emer("Setup <Postgres> Failed: %v", err.Error())
+		os.Exit(1)
 	}
 
 	redisClient, err := redis.NewRedisSentinelClient(
@@ -92,6 +96,7 @@ func onCreate(env *configs.BasicEnv) {
 	)
 	if err != nil {
 		logger.Emer("Setup <Redis> Failed: %v", err.Error())
+		os.Exit(1)
 	}
 
 	d := dao.NewDao(&dao.DaoReliance{
@@ -103,8 +108,9 @@ func onCreate(env *configs.BasicEnv) {
 	})
 
 	itemSvrObj = handler.NewItemSvrImpl(&handler.ItemSvrImplReliance{
-		Dao:   d,
-		Cache: c,
+		Dao:       d,
+		Cache:     c,
+		Benchmark: env.Benchmark == "true",
 	})
 
 	svr := itemSvr.NewServer(
@@ -116,6 +122,7 @@ func onCreate(env *configs.BasicEnv) {
 	go func() {
 		if err := svr.Run(); err != nil {
 			logger.Emer("Run <ItemSvr> Failed: %v", err.Error())
+			os.Exit(1)
 		}
 	}()
 }

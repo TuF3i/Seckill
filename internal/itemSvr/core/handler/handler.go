@@ -218,7 +218,12 @@ func (s *ItemSvrImpl) PrepareOrder(ctx context.Context, userId string, itemId st
 		return 0, kerrors.NewBizStatusError(dto.InvalidItemID.Status, dto.InvalidItemID.Info)
 	}
 
-	result, err := s.Cache.PrepareOrderAtomic(ctx, itemId, userId, 5*time.Minute)
+	var result int64
+	if s.Benchmark {
+		result, err = s.Cache.PrepareOrderAtomicNoLimit(ctx, itemId)
+	} else {
+		result, err = s.Cache.PrepareOrderAtomic(ctx, itemId, userId, 5*time.Minute)
+	}
 	if err != nil {
 		return 0, err
 	}

@@ -13,7 +13,11 @@ import (
 //go:embed script/order.lua
 var prepareOrderScript string
 
+//go:embed script/prepare_order_no_limit.lua
+var prepareOrderNoLimitScript string
+
 var prepareOrderCmd = redis.NewScript(prepareOrderScript)
+var prepareOrderNoLimitCmd = redis.NewScript(prepareOrderNoLimitScript)
 
 func (r *Cache) PrepareOrderAtomic(ctx context.Context, itemId string, userId string, limitTTL time.Duration) (int64, error) {
 	flashKey := lkeygen.GenItemFlashKey(itemId)
@@ -21,6 +25,18 @@ func (r *Cache) PrepareOrderAtomic(ctx context.Context, itemId string, userId st
 	limitKey := lkeygen.GenItemPurchaseLimitKey(itemId, userId)
 
 	result, err := prepareOrderCmd.Run(ctx, r.Rdb, []string{flashKey, stockKey, limitKey}, int64(limitTTL.Seconds())).Int64()
+	if err != nil {
+		return 0, err
+	}
+
+	return result, nil
+}
+
+func (r *Cache) PrepareOrderAtomicNoLimit(ctx context.Context, itemId string) (int64, error) {
+	flashKey := lkeygen.GenItemFlashKey(itemId)
+	stockKey := lkeygen.GenItemStockKey(itemId)
+
+	result, err := prepareOrderNoLimitCmd.Run(ctx, r.Rdb, []string{flashKey, stockKey}).Int64()
 	if err != nil {
 		return 0, err
 	}

@@ -1,0 +1,26 @@
+services:
+  redpanda:
+    image: docker.1ms.run/redpandadata/redpanda:latest
+    container_name: redpanda
+    ports:
+      - "19092:19092"
+      - "18081:18081"
+      - "18082:18082"
+      - "19644:19644"
+    command:
+      - redpanda
+      - start
+      - --mode
+      - dev-container
+      - --smp
+      - "1"
+      - --kafka-addr
+      - external://0.0.0.0:19092
+      - --advertise-kafka-addr
+      - external://redpanda:19092
+    networks:
+      - redrock
+
+networks:
+  redrock:
+    external: true

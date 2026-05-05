@@ -6,8 +6,9 @@ import (
 )
 
 type ItemSvrImplReliance struct {
-	Dao   *dao.Dao
-	Cache *cache.Cache
+	Dao       *dao.Dao
+	Cache     *cache.Cache
+	Benchmark bool
 }
 
 type ItemSvrImpl struct {

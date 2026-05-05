@@ -46,5 +46,9 @@ func GetEnv() *configs.BasicEnv {
 		conf.ContainerName = d
 	}
 
+	if d := os.Getenv("BENCHMARK"); d != "" {
+		conf.Benchmark = d
+	}
+
 	return conf
 }

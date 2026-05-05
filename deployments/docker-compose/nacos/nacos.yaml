@@ -1,0 +1,22 @@
+networks:
+  redrock:
+    external: true
+
+services:
+  nacos:
+    image: docker.1ms.run/qingpan/rnacos:stable
+    container_name: nacos
+    ports:
+      - "8848:8848"
+      - "9848:9848"
+      - "10848:10848"
+    volumes:
+      - ./data:/io
+    environment:
+      # 设置数据存储路径
+      - RNACOS_DATA_DIR=/io/nacos_db
+      # 设置日志时区为 UTC+8
+      - RNACOS_GMT_OFFSET_HOURS=8
+    restart: always
+    networks:
+      - redrock

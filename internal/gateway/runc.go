@@ -57,12 +57,14 @@ func onCreate(env *configs.BasicEnv) {
 	snowFlake, err := snowflake.NewNode(stringToNodeID.StringToNodeID(env.ContainerName))
 	if err != nil {
 		logger.Emer("Setup <snowflake> Failed: %v", err.Error())
+		os.Exit(1)
 	}
 
 	// 转换数据类型
 	nacosPort, err := strconv.ParseUint(env.NacosPort, 10, 64)
 	if err != nil {
 		logger.Emer("Convert Port Failed: %v", err.Error())
+		os.Exit(1)
 	}
 
 	// 初始化Nacos
@@ -75,30 +77,35 @@ func onCreate(env *configs.BasicEnv) {
 	)
 	if err != nil {
 		logger.Emer("Setup <nacosClient> Failed: %v", err.Error())
+		os.Exit(1)
 	}
 
 	// 初始化userSvr
 	userClient, err := userSvr.NewClient("UserSvr", rpcclient.WithResolver(resolver.NewNacosResolver(nacosClient.NamingClient)))
 	if err != nil {
 		logger.Emer("Setup <userSvr> Failed: %v", err.Error())
+		os.Exit(1)
 	}
 
 	// 初始化itemSvr
 	itemClient, err := itemSvr.NewClient("ItemSvr", rpcclient.WithResolver(resolver.NewNacosResolver(nacosClient.NamingClient)))
 	if err != nil {
 		logger.Emer("Setup <itemSvr> Failed: %v", err.Error())
+		os.Exit(1)
 	}
 
 	// 初始化orderSvr
 	orderClient, err := orderSvr.NewClient("OrderSvr", rpcclient.WithResolver(resolver.NewNacosResolver(nacosClient.NamingClient)))
 	if err != nil {
 		logger.Emer("Setup <orderSvr> Failed: %v", err.Error())
+		os.Exit(1)
 	}
 
 	// 初始化paymentSvr
 	paymentClient, err := paymentSvr.NewClient("PaymentSvr", rpcclient.WithResolver(resolver.NewNacosResolver(nacosClient.NamingClient)))
 	if err != nil {
 		logger.Emer("Setup <paymentSvr> Failed: %v", err.Error())
+		os.Exit(1)
 	}
 
 	// 初始化Handler
@@ -125,6 +132,7 @@ func onCreate(env *configs.BasicEnv) {
 	loader, err := config.NewLoader(nacosClient, env.ConfigID, env.ConfigGroup)
 	if err != nil {
 		logger.Emer("Setup <ConfigLoader> Failed: %v", err.Error())
+		os.Exit(1)
 	}
 
 	// 初始化API引擎

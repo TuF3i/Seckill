@@ -8,4 +8,5 @@ type BasicEnv struct {
 	ConfigID      string
 	ConfigGroup   string
 	ContainerName string
+	Benchmark     string
 }

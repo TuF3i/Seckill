@@ -1,0 +1,24 @@
+{
+  "postgresql": {
+    "host": "pgpool",
+    "port": 5432,
+    "user": "root",
+    "password": "root",
+    "defaultDB": "seckill",
+    "sslMode": "disable"
+  },
+  "redis": {
+    "masterName": "cluster-master",
+    "sentinelAddrs": ["sentinel1:26379", "sentinel2:26379", "sentinel3:26379"],
+    "password": "root",
+    "sentinelPassword": "root"
+  },
+  "kafka": {
+    "brokers": ["redpanda:19092"]
+  },
+  "gateway": {
+    "listenAddr": "0.0.0.0",
+    "listenPort": "8080",
+    "monitoringPort": "8889"
+  }
+}
