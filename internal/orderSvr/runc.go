@@ -105,6 +105,7 @@ func onCreate(env *configs.BasicEnv) {
 	kafkaProd := kafka.NewKafkaProducerClient(
 		kafka.WithTopic("order_topic"),
 		kafka.WithBrokers(cfg.Kafka.Brokers),
+		kafka.WithBalancer(kafka.NewKeyPartitioner()),
 	)
 
 	d := dao.NewDao(&dao.DaoReliance{
