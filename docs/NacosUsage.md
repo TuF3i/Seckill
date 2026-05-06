@@ -8,9 +8,9 @@ import n "seckill/infrastructures/nacos"
 client, err := n.NewNacosClient(
     n.WithHost("127.0.0.1"),
     n.WithPort(8848),
-    n.WithUserName("nacos"),
-    n.WithPassword("nacos"),
-    n.WithNamespaceID("dev"),
+    n.WithUserName("admin"),
+    n.WithPassword("admin"),
+    n.WithNamespaceID("public"),
 )
 ```
 
@@ -24,12 +24,6 @@ client, err := n.NewNacosClient(
 ---
 
 ## Kitex 注册中心接入
-
-### 安装依赖
-
-```bash
-go get github.com/kitex-contrib/registry-nacos
-```
 
 ### 服务端注册
 
@@ -66,15 +60,9 @@ cli, err := xxxservice.MustNewClient(
 
 ---
 
-## Viper 配置中心接入
+## 配置中心接入
 
-### 安装依赖
-
-```bash
-go get github.com/nacos-group/nacos-sdk-go/v2/clients/config_client
-```
-
-### 远程配置监听
+### 读取配置
 
 ```go
 import (
@@ -84,37 +72,24 @@ import (
 
 client, _ := n.NewNacosClient()
 
-// 读取配置
 content, err := client.ConfigClient.GetConfig(vo.ConfigParam{
-    DataId: "app-config",
-    Group:  "DEFAULT_GROUP",
-})
-
-// 监听配置变更
-client.ConfigClient.ListenConfig(vo.ConfigParam{
-    DataId: "app-config",
-    Group:  "DEFAULT_GROUP",
-    OnChange: func(namespace, group, dataId, data string) {
-        // 配置变更回调
-    },
+    DataId: "seckill",
+    Group:  "REDROCK",
 })
 ```
 
-### 与 Viper 结合
+### 配置加载器
+
+项目在 `pkg/config/loader.go` 中封装了配置加载器，自动从 Nacos 拉取 JSON 配置并解析到 `configs.Config` 结构体：
 
 ```go
 import (
-    "github.com/spf13/viper"
     n "seckill/infrastructures/nacos"
+    "seckill/pkg/config"
 )
 
-client, _ := n.NewNacosClient()
-
-content, _ := client.ConfigClient.GetConfig(vo.ConfigParam{
-    DataId: "app.yaml",
-    Group:  "DEFAULT_GROUP",
-})
-
-viper.SetConfigType("yaml")
-viper.ReadConfig(strings.NewReader(content))
+nacosClient, _ := n.NewNacosClient()
+loader, _ := config.NewLoader(nacosClient, "seckill", "REDROCK")
+cfg := loader.GetConfig()
+// cfg.PostgreSQL.Host, cfg.Redis.MasterName, etc.
 ```
