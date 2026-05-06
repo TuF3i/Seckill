@@ -3,6 +3,9 @@ package gateway
 import (
 	"os"
 	"os/signal"
+	"strconv"
+	"syscall"
+
 	"seckill/configs"
 	"seckill/infrastructures/nacos"
 	"seckill/internal/gateway/engine"
@@ -16,13 +19,12 @@ import (
 	"seckill/pkg/config"
 	"seckill/pkg/env"
 	"seckill/pkg/stringToNodeID"
-	"strconv"
-	"syscall"
 
 	"github.com/kitex-contrib/registry-nacos/resolver"
 
 	rpcclient "github.com/cloudwego/kitex/client"
 	"github.com/cloudwego/kitex/pkg/transmeta"
+	"github.com/cloudwego/kitex/transport"
 
 	"gitee.com/liumou_site/logger"
 	"github.com/bwmarrin/snowflake"
@@ -85,7 +87,8 @@ func onCreate(env *configs.BasicEnv) {
 	userClient, err := userSvr.NewClient(
 		"UserSvr",
 		rpcclient.WithResolver(resolver.NewNacosResolver(nacosClient.NamingClient)),
-		rpcclient.WithMetaHandler(transmeta.ServerTTHeaderHandler),
+		rpcclient.WithMetaHandler(transmeta.ClientTTHeaderHandler),
+		rpcclient.WithTransportProtocol(transport.TTHeader),
 	)
 	if err != nil {
 		logger.Emer("Setup <userSvr> Failed: %v", err.Error())
@@ -96,7 +99,8 @@ func onCreate(env *configs.BasicEnv) {
 	itemClient, err := itemSvr.NewClient(
 		"ItemSvr",
 		rpcclient.WithResolver(resolver.NewNacosResolver(nacosClient.NamingClient)),
-		rpcclient.WithMetaHandler(transmeta.ServerTTHeaderHandler),
+		rpcclient.WithMetaHandler(transmeta.ClientTTHeaderHandler),
+		rpcclient.WithTransportProtocol(transport.TTHeader),
 	)
 	if err != nil {
 		logger.Emer("Setup <itemSvr> Failed: %v", err.Error())
@@ -107,7 +111,8 @@ func onCreate(env *configs.BasicEnv) {
 	orderClient, err := orderSvr.NewClient(
 		"OrderSvr",
 		rpcclient.WithResolver(resolver.NewNacosResolver(nacosClient.NamingClient)),
-		rpcclient.WithMetaHandler(transmeta.ServerTTHeaderHandler),
+		rpcclient.WithMetaHandler(transmeta.ClientTTHeaderHandler),
+		rpcclient.WithTransportProtocol(transport.TTHeader),
 	)
 	if err != nil {
 		logger.Emer("Setup <orderSvr> Failed: %v", err.Error())
@@ -118,7 +123,8 @@ func onCreate(env *configs.BasicEnv) {
 	paymentClient, err := paymentSvr.NewClient(
 		"PaymentSvr",
 		rpcclient.WithResolver(resolver.NewNacosResolver(nacosClient.NamingClient)),
-		rpcclient.WithMetaHandler(transmeta.ServerTTHeaderHandler),
+		rpcclient.WithMetaHandler(transmeta.ClientTTHeaderHandler),
+		rpcclient.WithTransportProtocol(transport.TTHeader),
 	)
 	if err != nil {
 		logger.Emer("Setup <paymentSvr> Failed: %v", err.Error())
