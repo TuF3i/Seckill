@@ -78,8 +78,8 @@ func NewKafkaProducerClient(opts ...Option) *kafka.Writer {
 		Addr:                   kafka.TCP(basicInfo.Brokers...),
 		Topic:                  basicInfo.Topic,
 		MaxAttempts:            3,
-		BatchSize:              500,
-		BatchTimeout:           50 * time.Millisecond,
+		BatchSize:              1,
+		BatchTimeout:           5 * time.Millisecond,
 		RequiredAcks:           kafka.RequireAll,
 		Async:                  false,
 		AllowAutoTopicCreation: true,
@@ -118,8 +118,8 @@ func NewKafkaConsumerGroup(opts ...Option) *kafka.Reader {
 		Dialer:      dialer,
 		Topic:       basicInfo.Topic,
 		StartOffset: kafka.LastOffset,
-		MinBytes:    1e3,  // 1KB
-		MaxBytes:    10e6, // 10MB
+		// MinBytes:    1e3,  // 1KB
+		// MaxBytes:    10e6, // 10MB
 	})
 
 	return client

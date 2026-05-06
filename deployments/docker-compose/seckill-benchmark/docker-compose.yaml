@@ -1,0 +1,432 @@
+services:
+  # ═══════════════════════════════════════════════════════════
+  # PostgreSQL 主从集群 + Pgpool-II 连接池
+  # ═══════════════════════════════════════════════════════════
+  pg-0:
+    image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/bitnamilegacy/postgresql-repmgr:17.6.0-debian-12-r2
+    container_name: seckill-pg-0
+    ports:
+      - 5433:5432
+    volumes:
+      - pg-0-data:/bitnami/postgresql
+    networks:
+      - seckill
+    environment:
+      - POSTGRESQL_POSTGRES_PASSWORD=${PGPOOL_POSTGRES_PASSWORD}
+      - POSTGRESQL_USERNAME=${POSTGRESQL_USERNAME}
+      - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
+      - POSTGRESQL_DATABASE=${POSTGRESQL_DATABASE}
+      - POSTGRESQL_NUM_SYNCHRONOUS_REPLICAS=1
+      - REPMGR_USERNAME=${REPMGR_USERNAME}
+      - REPMGR_PASSWORD=${REPMGR_PASSWORD}
+      - REPMGR_PRIMARY_HOST=pg-0
+      - REPMGR_PRIMARY_PORT=5432
+      - REPMGR_PARTNER_NODES=pg-0,pg-1:5432
+      - REPMGR_NODE_NAME=pg-0
+      - REPMGR_NODE_NETWORK_NAME=pg-0
+      - REPMGR_PORT_NUMBER=5432
+    restart: always
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRESQL_USERNAME}", "-d", "${POSTGRESQL_DATABASE}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pg-1:
+    image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/bitnamilegacy/postgresql-repmgr:17.6.0-debian-12-r2
+    container_name: seckill-pg-1
+    ports:
+      - 5434:5432
+    volumes:
+      - pg-1-data:/bitnami/postgresql
+    networks:
+      - seckill
+    environment:
+      - POSTGRESQL_POSTGRES_PASSWORD=${PGPOOL_POSTGRES_PASSWORD}
+      - POSTGRESQL_USERNAME=${POSTGRESQL_USERNAME}
+      - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
+      - POSTGRESQL_DATABASE=${POSTGRESQL_DATABASE}
+      - POSTGRESQL_NUM_SYNCHRONOUS_REPLICAS=1
+      - REPMGR_USERNAME=${REPMGR_USERNAME}
+      - REPMGR_PASSWORD=${REPMGR_PASSWORD}
+      - REPMGR_PRIMARY_HOST=pg-0
+      - REPMGR_PRIMARY_PORT=5432
+      - REPMGR_PARTNER_NODES=pg-0,pg-1:5432
+      - REPMGR_NODE_NAME=pg-1
+      - REPMGR_NODE_NETWORK_NAME=pg-1
+      - REPMGR_PORT_NUMBER=5432
+    restart: always
+    depends_on:
+      pg-0:
+        condition: service_healthy
+
+  pgpool:
+    image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/bitnami/pgpool:4.6.2-debian-12-r1
+    container_name: seckill-pgpool
+    ports:
+      - 5432:5432
+    networks:
+      - seckill
+    environment:
+      - PGPOOL_BACKEND_NODES=0:pg-0:5432,1:pg-1:5432
+      - PGPOOL_SR_CHECK_USER=${REPMGR_USERNAME}
+      - PGPOOL_SR_CHECK_PASSWORD=${REPMGR_PASSWORD}
+      - PGPOOL_ENABLE_LDAP=no
+      - PGPOOL_POSTGRES_USERNAME=${PGPOOL_POSTGRES_USERNAME}
+      - PGPOOL_POSTGRES_PASSWORD=${PGPOOL_POSTGRES_PASSWORD}
+      - PGPOOL_ADMIN_USERNAME=${PGPOOL_ADMIN_USERNAME}
+      - PGPOOL_ADMIN_PASSWORD=${PGPOOL_ADMIN_PASSWORD}
+      - PGPOOL_ENABLE_LOAD_BALANCING=yes
+      - PGPOOL_POSTGRES_CUSTOM_USERS=${POSTGRESQL_USERNAME}
+      - PGPOOL_POSTGRES_CUSTOM_PASSWORDS=${POSTGRESQL_PASSWORD}
+    restart: always
+    depends_on:
+      pg-0:
+        condition: service_healthy
+      pg-1:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "/opt/bitnami/scripts/pgpool/healthcheck.sh"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ═══════════════════════════════════════════════════════════
+  # Redis Sentinel 高可用集群
+  # ═══════════════════════════════════════════════════════════
+  redis-master:
+    image: docker.1ms.run/library/redis:7.2-alpine
+    container_name: seckill-redis-master
+    restart: unless-stopped
+    command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      - ../redis-sentinel/config/master/redis.conf:/usr/local/etc/redis/redis.conf
+      - redis-master-data:/data
+    networks:
+      - seckill
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "root", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  redis-slave1:
+    image: docker.1ms.run/library/redis:7.2-alpine
+    container_name: seckill-redis-slave1
+    restart: unless-stopped
+    command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      - ../redis-sentinel/config/slave1/redis.conf:/usr/local/etc/redis/redis.conf
+      - redis-slave1-data:/data
+    networks:
+      - seckill
+    ports:
+      - "6380:6379"
+    depends_on:
+      - redis-master
+
+  redis-slave2:
+    image: docker.1ms.run/library/redis:7.2-alpine
+    container_name: seckill-redis-slave2
+    restart: unless-stopped
+    command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      - ../redis-sentinel/config/slave2/redis.conf:/usr/local/etc/redis/redis.conf
+      - redis-slave2-data:/data
+    networks:
+      - seckill
+    ports:
+      - "6381:6379"
+    depends_on:
+      - redis-master
+
+  sentinel1:
+    image: docker.1ms.run/library/redis:7.2-alpine
+    container_name: seckill-sentinel1
+    restart: unless-stopped
+    command: redis-sentinel /usr/local/etc/redis/sentinel.conf
+    volumes:
+      - ../redis-sentinel/config/sentinel1/sentinel.conf:/usr/local/etc/redis/sentinel.conf
+      - sentinel1-data:/data
+    networks:
+      - seckill
+    ports:
+      - "26379:26379"
+    depends_on:
+      redis-master:
+        condition: service_healthy
+
+  sentinel2:
+    image: docker.1ms.run/library/redis:7.2-alpine
+    container_name: seckill-sentinel2
+    restart: unless-stopped
+    command: redis-sentinel /usr/local/etc/redis/sentinel.conf
+    volumes:
+      - ../redis-sentinel/config/sentinel2/sentinel.conf:/usr/local/etc/redis/sentinel.conf
+      - sentinel2-data:/data
+    networks:
+      - seckill
+    ports:
+      - "26380:26379"
+    depends_on:
+      redis-master:
+        condition: service_healthy
+
+  sentinel3:
+    image: docker.1ms.run/library/redis:7.2-alpine
+    container_name: seckill-sentinel3
+    restart: unless-stopped
+    command: redis-sentinel /usr/local/etc/redis/sentinel.conf
+    volumes:
+      - ../redis-sentinel/config/sentinel3/sentinel.conf:/usr/local/etc/redis/sentinel.conf
+      - sentinel3-data:/data
+    networks:
+      - seckill
+    ports:
+      - "26381:26379"
+    depends_on:
+      redis-master:
+        condition: service_healthy
+
+  # ═══════════════════════════════════════════════════════════
+  # Redpanda（Kafka 兼容消息队列）
+  # ═══════════════════════════════════════════════════════════
+  redpanda:
+    image: docker.1ms.run/redpandadata/redpanda:latest
+    container_name: seckill-redpanda
+    ports:
+      - "19092:19092"
+      - "18081:18081"
+      - "18082:18082"
+      - "19644:19644"
+    command:
+      - redpanda
+      - start
+      - --mode
+      - dev-container
+      - --smp
+      - "1"
+      - --kafka-addr
+      - external://0.0.0.0:19092
+      - --advertise-kafka-addr
+      - external://redpanda:19092
+    networks:
+      - seckill
+
+  # ═══════════════════════════════════════════════════════════
+  # Nacos（配置中心 + 服务发现）
+  # ═══════════════════════════════════════════════════════════
+  nacos:
+    image: docker.1ms.run/qingpan/rnacos:stable
+    container_name: seckill-nacos
+    ports:
+      - "8848:8848"
+      - "9848:9848"
+      - "10848:10848"
+    volumes:
+      - nacos-data:/io
+    environment:
+      - RNACOS_DATA_DIR=/io/nacos_db
+      - RNACOS_GMT_OFFSET_HOURS=8
+    restart: always
+    networks:
+      - seckill
+
+  # ═══════════════════════════════════════════════════════════
+  # Seckill Init（一次性初始化）
+  # ═══════════════════════════════════════════════════════════
+  seckill-init:
+    build:
+      context: ../../..
+      dockerfile: Dockerfile
+    container_name: seckill-init
+    restart: no
+    depends_on:
+      pgpool:
+        condition: service_healthy
+      nacos:
+        condition: service_started
+    environment:
+      NACOS_ADDR: nacos
+      NACOS_PORT: "8848"
+      NACOS_USER: nacos
+      NACOS_PASSWORD: nacos
+      CONFIG_ID: ${CONFIG_ID}
+      CONFIG_GROUP: ${CONFIG_GROUP}
+      CONTAINER_NAME: seckill-init
+      POSTGRESQL_USERNAME: ${POSTGRESQL_USERNAME}
+      POSTGRESQL_PASSWORD: ${POSTGRESQL_PASSWORD}
+      POSTGRESQL_DATABASE: ${POSTGRESQL_DATABASE}
+    networks:
+      - seckill
+    command: ["/bin/sh", "/docker-init.sh"]
+
+  # ═══════════════════════════════════════════════════════════
+  # Seckill UserSvr（用户服务）
+  # ═══════════════════════════════════════════════════════════
+  seckill-user:
+    build:
+      context: ../../..
+      dockerfile: Dockerfile
+    container_name: seckill-user-svr
+    restart: unless-stopped
+    depends_on:
+      seckill-init:
+        condition: service_completed_successfully
+    environment:
+      NACOS_ADDR: nacos
+      NACOS_PORT: "8848"
+      NACOS_USER: nacos
+      NACOS_PASSWORD: nacos
+      CONFIG_ID: ${CONFIG_ID}
+      CONFIG_GROUP: ${CONFIG_GROUP}
+      CONTAINER_NAME: seckill-user-svr
+    networks:
+      - seckill
+    command: ["./seckill", "user"]
+
+  # ═══════════════════════════════════════════════════════════
+  # Seckill ItemSvr（商品服务）
+  # ═══════════════════════════════════════════════════════════
+  seckill-item:
+    build:
+      context: ../../..
+      dockerfile: Dockerfile
+    container_name: seckill-item-svr
+    restart: unless-stopped
+    depends_on:
+      seckill-init:
+        condition: service_completed_successfully
+    environment:
+      NACOS_ADDR: nacos
+      NACOS_PORT: "8848"
+      NACOS_USER: nacos
+      NACOS_PASSWORD: nacos
+      CONFIG_ID: ${CONFIG_ID}
+      CONFIG_GROUP: ${CONFIG_GROUP}
+      CONTAINER_NAME: seckill-item-svr
+      BENCHMARK: "true"
+    networks:
+      - seckill
+    command: ["./seckill", "item"]
+
+  # ═══════════════════════════════════════════════════════════
+  # Seckill OrderSvr（订单服务）
+  # ═══════════════════════════════════════════════════════════
+  seckill-order:
+    build:
+      context: ../../..
+      dockerfile: Dockerfile
+    container_name: seckill-order-svr
+    restart: unless-stopped
+    depends_on:
+      seckill-init:
+        condition: service_completed_successfully
+    environment:
+      NACOS_ADDR: nacos
+      NACOS_PORT: "8848"
+      NACOS_USER: nacos
+      NACOS_PASSWORD: nacos
+      CONFIG_ID: ${CONFIG_ID}
+      CONFIG_GROUP: ${CONFIG_GROUP}
+      CONTAINER_NAME: seckill-order-svr
+    networks:
+      - seckill
+    command: ["./seckill", "order"]
+
+  # ═══════════════════════════════════════════════════════════
+  # Seckill PaymentSvr（支付服务）
+  # ═══════════════════════════════════════════════════════════
+  seckill-payment:
+    build:
+      context: ../../..
+      dockerfile: Dockerfile
+    container_name: seckill-payment-svr
+    restart: unless-stopped
+    depends_on:
+      seckill-init:
+        condition: service_completed_successfully
+    environment:
+      NACOS_ADDR: nacos
+      NACOS_PORT: "8848"
+      NACOS_USER: nacos
+      NACOS_PASSWORD: nacos
+      CONFIG_ID: ${CONFIG_ID}
+      CONFIG_GROUP: ${CONFIG_GROUP}
+      CONTAINER_NAME: seckill-payment-svr
+    networks:
+      - seckill
+    command: ["./seckill", "payment"]
+
+  # ═══════════════════════════════════════════════════════════
+  # Seckill OrderConsumer（订单消费者）
+  # ═══════════════════════════════════════════════════════════
+  seckill-consumer:
+    build:
+      context: ../../..
+      dockerfile: Dockerfile
+    container_name: seckill-consumer
+    restart: unless-stopped
+    depends_on:
+      seckill-init:
+        condition: service_completed_successfully
+    environment:
+      NACOS_ADDR: nacos
+      NACOS_PORT: "8848"
+      NACOS_USER: nacos
+      NACOS_PASSWORD: nacos
+      CONFIG_ID: ${CONFIG_ID}
+      CONFIG_GROUP: ${CONFIG_GROUP}
+      CONTAINER_NAME: seckill-consumer
+    networks:
+      - seckill
+    command: ["./seckill", "consumer"]
+
+  # ═══════════════════════════════════════════════════════════
+  # Seckill Gateway（API 网关）
+  # ═══════════════════════════════════════════════════════════
+  seckill-gateway:
+    build:
+      context: ../../..
+      dockerfile: Dockerfile
+    container_name: seckill-app
+    restart: unless-stopped
+    depends_on:
+      seckill-init:
+        condition: service_completed_successfully
+    environment:
+      NACOS_ADDR: nacos
+      NACOS_PORT: "8848"
+      NACOS_USER: nacos
+      NACOS_PASSWORD: nacos
+      CONFIG_ID: ${CONFIG_ID}
+      CONFIG_GROUP: ${CONFIG_GROUP}
+      CONTAINER_NAME: seckill-app
+    ports:
+      - "8888:8888"
+    networks:
+      - seckill
+    command: ["./seckill", "gateway"]
+
+# ═══════════════════════════════════════════════════════════
+# Network
+# ═══════════════════════════════════════════════════════════
+networks:
+  seckill:
+    driver: bridge
+
+# ═══════════════════════════════════════════════════════════
+# Volumes
+# ═══════════════════════════════════════════════════════════
+volumes:
+  pg-0-data:
+  pg-1-data:
+  redis-master-data:
+  redis-slave1-data:
+  redis-slave2-data:
+  sentinel1-data:
+  sentinel2-data:
+  sentinel3-data:
+  nacos-data:
