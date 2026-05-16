@@ -1,6 +1,7 @@
 package userSvr
 
 import (
+	"context"
 	"os"
 	"os/signal"
 	"strconv"
@@ -8,6 +9,7 @@ import (
 
 	"seckill/configs"
 	"seckill/infrastructures/nacos"
+	"seckill/infrastructures/opentelemetry"
 	"seckill/infrastructures/postgres"
 	"seckill/infrastructures/redis"
 	"seckill/internal/userSvr/core/cache"
@@ -21,6 +23,8 @@ import (
 	"github.com/cloudwego/kitex/pkg/rpcinfo"
 	"github.com/cloudwego/kitex/pkg/transmeta"
 	"github.com/cloudwego/kitex/server"
+	"github.com/kitex-contrib/obs-opentelemetry/provider"
+	"github.com/kitex-contrib/obs-opentelemetry/tracing"
 	"github.com/kitex-contrib/registry-nacos/registry"
 )
 
@@ -29,6 +33,7 @@ const RedisDBToken = 0
 var (
 	userSvrObj *handler.UserSvrImpl
 	l          *logger.LocalLogger
+	p          provider.OtelProvider
 )
 
 func RunUserSvr() {
@@ -74,6 +79,11 @@ func onCreate(env *configs.BasicEnv) {
 
 	cfg := loader.GetConfig()
 
+	p = opentelemetry.NewProvider(
+		opentelemetry.WithEndpoint(cfg.Opentelemetry.ExportEndpoint),
+		opentelemetry.WithServiceName("UserSvr"),
+	)
+
 	portStr := strconv.Itoa(cfg.PostgreSQL.Port)
 	pgClient, err := postgres.NewPostgresClient(
 		postgres.WithHost(cfg.PostgreSQL.Host),
@@ -118,6 +128,7 @@ func onCreate(env *configs.BasicEnv) {
 		server.WithMetaHandler(transmeta.ServerTTHeaderHandler),
 		server.WithRegistry(registry.NewNacosRegistry(nacosClient.NamingClient)),
 		server.WithServerBasicInfo(&rpcinfo.EndpointBasicInfo{ServiceName: "UserSvr"}),
+		server.WithSuite(tracing.NewServerSuite()),
 	)
 
 	go func() {
@@ -130,5 +141,6 @@ func onCreate(env *configs.BasicEnv) {
 
 func onDestory() {
 	l.Modular = "UserSvr-OnDestory"
+	p.Shutdown(context.Background())
 	userSvrObj = nil
 }

@@ -29,6 +29,9 @@ CONFIG_JSON='{
     "listenAddr": "0.0.0.0",
     "listenPort": "8888",
     "monitoringPort": "8889"
+  },
+  "opentelemetry": {
+    "exportEndpoint": "otlp:4317"
   }
 }'
 

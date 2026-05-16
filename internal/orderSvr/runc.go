@@ -1,6 +1,7 @@
 package orderSvr
 
 import (
+	"context"
 	"os"
 	"os/signal"
 	"strconv"
@@ -9,6 +10,7 @@ import (
 	"seckill/configs"
 	"seckill/infrastructures/kafka"
 	"seckill/infrastructures/nacos"
+	"seckill/infrastructures/opentelemetry"
 	"seckill/infrastructures/postgres"
 	"seckill/infrastructures/redis"
 	"seckill/internal/orderSvr/core/cache"
@@ -22,6 +24,8 @@ import (
 	"github.com/cloudwego/kitex/pkg/rpcinfo"
 	"github.com/cloudwego/kitex/pkg/transmeta"
 	"github.com/cloudwego/kitex/server"
+	"github.com/kitex-contrib/obs-opentelemetry/provider"
+	"github.com/kitex-contrib/obs-opentelemetry/tracing"
 	"github.com/kitex-contrib/registry-nacos/registry"
 )
 
@@ -30,6 +34,7 @@ const RedisDBOrder = 2
 var (
 	orderSvrObj *handler.OrderSvrImpl
 	l           *logger.LocalLogger
+	p           provider.OtelProvider
 )
 
 func RunOrderSvr() {
@@ -75,6 +80,11 @@ func onCreate(env *configs.BasicEnv) {
 	}
 
 	cfg := loader.GetConfig()
+
+	p = opentelemetry.NewProvider(
+		opentelemetry.WithEndpoint(cfg.Opentelemetry.ExportEndpoint),
+		opentelemetry.WithServiceName("OrderSvr"),
+	)
 
 	portStr := strconv.Itoa(cfg.PostgreSQL.Port)
 	pgClient, err := postgres.NewPostgresClient(
@@ -127,6 +137,7 @@ func onCreate(env *configs.BasicEnv) {
 		server.WithMetaHandler(transmeta.ServerTTHeaderHandler),
 		server.WithRegistry(registry.NewNacosRegistry(nacosClient.NamingClient)),
 		server.WithServerBasicInfo(&rpcinfo.EndpointBasicInfo{ServiceName: "OrderSvr"}),
+		server.WithSuite(tracing.NewServerSuite()),
 	)
 
 	go func() {
@@ -142,5 +153,6 @@ func onDestory() {
 	if orderSvrObj != nil && orderSvrObj.KafkaProd != nil {
 		orderSvrObj.KafkaProd.Close()
 	}
+	p.Shutdown(context.Background())
 	orderSvrObj = nil
 }

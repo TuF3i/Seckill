@@ -1,6 +1,7 @@
 package itemSvr
 
 import (
+	"context"
 	"os"
 	"os/signal"
 	"strconv"
@@ -8,6 +9,7 @@ import (
 
 	"seckill/configs"
 	"seckill/infrastructures/nacos"
+	"seckill/infrastructures/opentelemetry"
 	"seckill/infrastructures/postgres"
 	"seckill/infrastructures/redis"
 	"seckill/internal/itemSvr/core/cache"
@@ -21,6 +23,8 @@ import (
 	"github.com/cloudwego/kitex/pkg/rpcinfo"
 	"github.com/cloudwego/kitex/pkg/transmeta"
 	"github.com/cloudwego/kitex/server"
+	"github.com/kitex-contrib/obs-opentelemetry/provider"
+	"github.com/kitex-contrib/obs-opentelemetry/tracing"
 	"github.com/kitex-contrib/registry-nacos/registry"
 )
 
@@ -29,6 +33,7 @@ const RedisDBItem = 1
 var (
 	itemSvrObj *handler.ItemSvrImpl
 	l          *logger.LocalLogger
+	p          provider.OtelProvider
 )
 
 func RunItemSvr() {
@@ -73,6 +78,11 @@ func onCreate(env *configs.BasicEnv) {
 	}
 
 	cfg := loader.GetConfig()
+
+	p = opentelemetry.NewProvider(
+		opentelemetry.WithEndpoint(cfg.Opentelemetry.ExportEndpoint),
+		opentelemetry.WithServiceName("ItemSvr"),
+	)
 
 	portStr := strconv.Itoa(cfg.PostgreSQL.Port)
 	pgClient, err := postgres.NewPostgresClient(
@@ -119,6 +129,7 @@ func onCreate(env *configs.BasicEnv) {
 		server.WithMetaHandler(transmeta.ServerTTHeaderHandler),
 		server.WithRegistry(registry.NewNacosRegistry(nacosClient.NamingClient)),
 		server.WithServerBasicInfo(&rpcinfo.EndpointBasicInfo{ServiceName: "ItemSvr"}),
+		server.WithSuite(tracing.NewServerSuite()),
 	)
 
 	go func() {
@@ -131,5 +142,6 @@ func onCreate(env *configs.BasicEnv) {
 
 func onDestory() {
 	l.Modular = "ItemSvr-OnDestory"
+	p.Shutdown(context.Background())
 	itemSvrObj = nil
 }

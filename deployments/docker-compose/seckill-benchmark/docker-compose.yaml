@@ -235,6 +235,66 @@ services:
       - seckill
 
   # ═══════════════════════════════════════════════════════════
+  # opentelemetry 链路追踪
+  # ═══════════════════════════════════════════════════════════
+  otel:
+    image: docker.1ms.run/otel/opentelemetry-collector-contrib-dev:latest
+    command: ["--config=/etc/otel-collector-config.yaml", "${OTELCOL_ARGS}"]
+    volumes:
+      - ../opentelemetry/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "1888:1888" # pprof extension
+      - "8888" # Prometheus metrics exposed by the collector
+      - "8889:8889" # Prometheus exporter metrics
+      - "13133:13133" # health_check extension
+      - "4317:4317" # OTLP gRPC receiver
+      - "55679" # zpages extension
+    depends_on:
+      - jaeger-all-in-one
+
+  # Jaeger
+  jaeger-all-in-one:
+    container_name: jaeger-all-in-one
+    image: docker.1ms.run/jaegertracing/all-in-one:latest
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - "16686:16686"
+      - "6831:6831"
+      - "4317"
+
+  # ═══════════════════════════════════════════════════════════
+  # metrics 监控
+  # ═══════════════════════════════════════════════════════════
+  victoriametrics:
+    container_name: victoriametrics
+    image: docker.1ms.run/victoriametrics/victoria-metrics
+    ports:
+      - "8428:8428"
+      - "8089:8089"
+      - "8089:8089/udp"
+      - "2003:2003"
+      - "2003:2003/udp"
+      - "4242:4242"
+    command:
+      - "--storageDataPath=/storage"
+      - "--graphiteListenAddr=:2003"
+      - "--opentsdbListenAddr=:4242"
+      - "--httpListenAddr=:8428"
+      - "--influxListenAddr=:8089"
+    restart: always
+
+  # Grafana
+  grafana:
+    image: docker.1ms.run/grafana/grafana:latest
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+    ports:
+      - "3000:3000"
+
+  # ═══════════════════════════════════════════════════════════
   # Seckill Init（一次性初始化）
   # ═══════════════════════════════════════════════════════════
   seckill-init:
@@ -247,6 +307,12 @@ services:
       pgpool:
         condition: service_healthy
       nacos:
+        condition: service_started
+      otel:
+        condition: service_started
+      jaeger-all-in-one:
+        condition: service_started
+      victoriametrics:
         condition: service_started
     environment:
       NACOS_ADDR: nacos

@@ -1,6 +1,7 @@
 package gateway
 
 import (
+	"context"
 	"os"
 	"os/signal"
 	"strconv"
@@ -8,6 +9,7 @@ import (
 
 	"seckill/configs"
 	"seckill/infrastructures/nacos"
+	"seckill/infrastructures/opentelemetry"
 	"seckill/internal/gateway/engine"
 	"seckill/internal/gateway/handler"
 	"seckill/internal/gateway/middleware"
@@ -20,6 +22,8 @@ import (
 	"seckill/pkg/env"
 	"seckill/pkg/stringToNodeID"
 
+	"github.com/kitex-contrib/obs-opentelemetry/provider"
+	"github.com/kitex-contrib/obs-opentelemetry/tracing"
 	"github.com/kitex-contrib/registry-nacos/resolver"
 
 	rpcclient "github.com/cloudwego/kitex/client"
@@ -33,6 +37,7 @@ import (
 var (
 	GatewayEngine *engine.Engine
 	l             *logger.LocalLogger
+	p             provider.OtelProvider
 )
 
 func RunGateway() {
@@ -83,12 +88,28 @@ func onCreate(env *configs.BasicEnv) {
 		os.Exit(1)
 	}
 
+	// 初始化配置信息
+	loader, err := config.NewLoader(nacosClient, env.ConfigID, env.ConfigGroup)
+	if err != nil {
+		logger.Emer("Setup <ConfigLoader> Failed: %v", err.Error())
+		os.Exit(1)
+	}
+
+	cfg := loader.GetConfig()
+
+	// 初始化OTLP Provider
+	p = opentelemetry.NewProvider(
+		opentelemetry.WithEndpoint(cfg.Opentelemetry.ExportEndpoint),
+		opentelemetry.WithServiceName("seckill-gateway"),
+	)
+
 	// 初始化userSvr
 	userClient, err := userSvr.NewClient(
 		"UserSvr",
 		rpcclient.WithResolver(resolver.NewNacosResolver(nacosClient.NamingClient)),
 		rpcclient.WithMetaHandler(transmeta.ClientTTHeaderHandler),
 		rpcclient.WithTransportProtocol(transport.TTHeader),
+		rpcclient.WithSuite(tracing.NewClientSuite()),
 	)
 	if err != nil {
 		logger.Emer("Setup <userSvr> Failed: %v", err.Error())
@@ -101,6 +122,7 @@ func onCreate(env *configs.BasicEnv) {
 		rpcclient.WithResolver(resolver.NewNacosResolver(nacosClient.NamingClient)),
 		rpcclient.WithMetaHandler(transmeta.ClientTTHeaderHandler),
 		rpcclient.WithTransportProtocol(transport.TTHeader),
+		rpcclient.WithSuite(tracing.NewClientSuite()),
 	)
 	if err != nil {
 		logger.Emer("Setup <itemSvr> Failed: %v", err.Error())
@@ -113,6 +135,7 @@ func onCreate(env *configs.BasicEnv) {
 		rpcclient.WithResolver(resolver.NewNacosResolver(nacosClient.NamingClient)),
 		rpcclient.WithMetaHandler(transmeta.ClientTTHeaderHandler),
 		rpcclient.WithTransportProtocol(transport.TTHeader),
+		rpcclient.WithSuite(tracing.NewClientSuite()),
 	)
 	if err != nil {
 		logger.Emer("Setup <orderSvr> Failed: %v", err.Error())
@@ -125,6 +148,7 @@ func onCreate(env *configs.BasicEnv) {
 		rpcclient.WithResolver(resolver.NewNacosResolver(nacosClient.NamingClient)),
 		rpcclient.WithMetaHandler(transmeta.ClientTTHeaderHandler),
 		rpcclient.WithTransportProtocol(transport.TTHeader),
+		rpcclient.WithSuite(tracing.NewClientSuite()),
 	)
 	if err != nil {
 		logger.Emer("Setup <paymentSvr> Failed: %v", err.Error())
@@ -151,17 +175,10 @@ func onCreate(env *configs.BasicEnv) {
 		HandlerFunc: h,
 	})
 
-	// 初始化配置信息
-	loader, err := config.NewLoader(nacosClient, env.ConfigID, env.ConfigGroup)
-	if err != nil {
-		logger.Emer("Setup <ConfigLoader> Failed: %v", err.Error())
-		os.Exit(1)
-	}
-
 	// 初始化API引擎
 	GatewayEngine = engine.NewEngine(&engine.RouterReliance{
 		Router: r,
-		Config: loader.GetConfig(),
+		Config: cfg,
 	})
 
 	// 运行引擎
@@ -175,6 +192,8 @@ func onDestory() {
 	if err != nil {
 		logger.Warn("Stop <GatewayEngine> Error: %v", err.Error())
 	}
+
+	p.Shutdown(context.Background())
 
 	return
 }
