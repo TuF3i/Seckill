@@ -31,7 +31,7 @@ CONFIG_JSON='{
     "monitoringPort": "8889"
   },
   "opentelemetry": {
-    "exportEndpoint": "otlp:4317"
+    "exportEndpoint": "otel:4317"
   }
 }'
 

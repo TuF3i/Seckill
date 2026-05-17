@@ -251,6 +251,8 @@ services:
       - "55679" # zpages extension
     depends_on:
       - jaeger-all-in-one
+    networks:
+      - seckill
 
   # Jaeger
   jaeger-all-in-one:
@@ -262,6 +264,8 @@ services:
       - "16686:16686"
       - "6831:6831"
       - "4317"
+    networks:
+      - seckill
 
   # ═══════════════════════════════════════════════════════════
   # metrics 监控
@@ -282,6 +286,8 @@ services:
       - "--opentsdbListenAddr=:4242"
       - "--httpListenAddr=:8428"
       - "--influxListenAddr=:8089"
+    networks:
+      - seckill
     restart: always
 
   # Grafana
@@ -293,6 +299,8 @@ services:
       - GF_AUTH_DISABLE_LOGIN_FORM=true
     ports:
       - "3000:3000"
+    networks:
+      - seckill
 
   # ═══════════════════════════════════════════════════════════
   # Seckill Init（一次性初始化）
